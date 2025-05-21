@@ -10,11 +10,13 @@ import LoadingSpinner from './LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { calculateElo } from '@/lib/elo'; // Import calculateElo
 
 const VotingArea: React.FC = () => {
   const [communities, setCommunities] = useState<[Community, Community] | []>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isVoting, setIsVoting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // For fetchCommunities
+  const [isVotingProcessing, setIsVotingProcessing] = useState(false); // For entire vote + optimistic update + refresh cycle
+  const [voteHighlight, setVoteHighlight] = useState<{ winnerId: string | null; loserId: string | null }>({ winnerId: null, loserId: null });
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const router = useRouter();
@@ -43,30 +45,41 @@ const VotingArea: React.FC = () => {
   }, [fetchCommunities]);
 
   const handleVote = async (winnerId: string) => {
-    if (communities.length < 2) return;
-    setIsVoting(true);
-    const winner = communities.find(c => c.id === winnerId);
-    const loser = communities.find(c => c.id !== winnerId);
+    if (communities.length < 2 || isVotingProcessing) return;
+    setIsVotingProcessing(true);
 
-    if (!winner || !loser) {
-      toast({
-        variant: "destructive",
-        title: "Greška",
-        description: "Problem prilikom odabira pobjednika.",
-      });
-      setIsVoting(false);
-      return;
-    }
+    const winnerCommunity = communities.find(c => c.id === winnerId)!;
+    const loserCommunity = communities.find(c => c.id !== winnerId)!;
+
+    const { newWinnerElo, newLoserElo } = calculateElo(winnerCommunity.elo, loserCommunity.elo);
+
+    // Optimistic UI update for ELOs
+    setCommunities(prevPair => {
+      if (!prevPair || prevPair.length < 2) return []; // Should not happen if button is clickable
+      return prevPair.map(c => {
+        if (c.id === winnerCommunity.id) return { ...c, elo: newWinnerElo };
+        if (c.id === loserCommunity.id) return { ...c, elo: newLoserElo };
+        return c;
+      }) as [Community, Community];
+    });
+    setVoteHighlight({ winnerId: winnerCommunity.id, loserId: loserCommunity.id });
 
     try {
-      const result = await submitVote(winner.id, loser.id);
+      const result = await submitVote(winnerCommunity.id, loserCommunity.id);
       if (result.success) {
         toast({
           title: "Glas zabilježen!",
-          description: `${winner.name} je pobijedio/la ${loser.name}.`,
+          description: `${winnerCommunity.name} je pobijedio/la ${loserCommunity.name}.`,
         });
-        router.refresh(); // Refresh server components and re-fetch data
-        await fetchCommunities(); // Fetch new pair for voting
+
+        // Delay before fetching next pair to show optimistic update
+        setTimeout(async () => {
+          router.refresh(); // Refresh server components for leaderboard
+          await fetchCommunities(); // Fetch new pair for voting (sets isLoading true/false)
+          setVoteHighlight({ winnerId: null, loserId: null });
+          setIsVotingProcessing(false);
+        }, 1500); // 1.5 seconds delay
+
       } else {
         throw new Error(result.message || 'Došlo je do greške prilikom glasanja.');
       }
@@ -77,13 +90,14 @@ const VotingArea: React.FC = () => {
         title: "Greška pri glasanju",
         description: errorMessage,
       });
-      console.error(err);
-    } finally {
-      setIsVoting(false);
+      // Fetch new communities to revert optimistic update and ensure consistency
+      await fetchCommunities();
+      setVoteHighlight({ winnerId: null, loserId: null });
+      setIsVotingProcessing(false);
     }
   };
 
-  if (isLoading && communities.length === 0) { // Only show initial loading if no communities are loaded yet
+  if (isLoading && communities.length === 0 && !isVotingProcessing) {
     return (
       <div className="flex flex-col items-center justify-center py-10">
         <LoadingSpinner size={48} />
@@ -98,26 +112,33 @@ const VotingArea: React.FC = () => {
         <AlertTriangle className="h-12 w-12 mb-4" />
         <p className="text-xl font-semibold">Došlo je do greške</p>
         <p className="mt-2 text-center">{error}</p>
-        <Button onClick={fetchCommunities} className="mt-6" variant="outline">
+        <Button onClick={fetchCommunities} className="mt-6" variant="outline" disabled={isLoading || isVotingProcessing}>
           <RefreshCw className="mr-2 h-4 w-4" /> Pokušaj ponovo
         </Button>
       </div>
     );
   }
 
-  if (communities.length < 2 && !isLoading) { // Show if not loading and no communities
+  if (communities.length < 2 && !isLoading && !isVotingProcessing) {
     return (
       <div className="py-10 text-center">
         <p className="text-lg text-muted-foreground">Trenutno nema zajednica za prikazati.</p>
-         <Button onClick={fetchCommunities} className="mt-6" variant="outline">
+         <Button onClick={fetchCommunities} className="mt-6" variant="outline" disabled={isLoading || isVotingProcessing}>
           <RefreshCw className="mr-2 h-4 w-4" /> Osvježi
         </Button>
       </div>
     );
   }
   
-  // Show loading overlay if already displaying communities but fetching new ones
-  const showVotingOverlay = isVoting || (isLoading && communities.length > 0);
+  let overlayTextToShow = "Molimo sačekajte...";
+  if (isVotingProcessing) {
+    // isLoading will be true when fetchCommunities is called inside setTimeout
+    overlayTextToShow = isLoading ? "Učitavanje nove runde..." : "Vaš glas se obrađuje...";
+  } else if (isLoading) { // Not voting, but loading new pair (e.g., initial or subsequent refresh button)
+    overlayTextToShow = "Učitavanje nove runde...";
+  }
+
+  const showProcessingOrLoadingOverlay = isVotingProcessing || (isLoading && communities.length > 0);
 
   return (
     <div className="py-8 md:py-12 relative">
@@ -129,7 +150,11 @@ const VotingArea: React.FC = () => {
           <CommunityCard
             community={communities[0]}
             onVote={handleVote}
-            disabled={showVotingOverlay}
+            disabled={isVotingProcessing || isLoading}
+            highlight={
+              voteHighlight.winnerId === communities[0].id ? 'winner' :
+              voteHighlight.loserId === communities[0].id ? 'loser' : null
+            }
           />
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden md:block
                           bg-background p-3 rounded-full border-2 border-primary shadow-lg">
@@ -138,15 +163,19 @@ const VotingArea: React.FC = () => {
           <CommunityCard
             community={communities[1]}
             onVote={handleVote}
-            disabled={showVotingOverlay}
+            disabled={isVotingProcessing || isLoading}
+            highlight={
+              voteHighlight.winnerId === communities[1].id ? 'winner' :
+              voteHighlight.loserId === communities[1].id ? 'loser' : null
+            }
           />
         </div>
       )}
-      {showVotingOverlay && (
+      {showProcessingOrLoadingOverlay && (
         <div className="absolute inset-0 bg-background/70 flex flex-col items-center justify-center z-10 rounded-lg">
           <LoadingSpinner size={64} />
           <p className="mt-3 text-xl text-primary font-semibold">
-            {isVoting ? "Glasanje u toku..." : "Učitavanje..."}
+            {overlayTextToShow}
           </p>
         </div>
       )}
