@@ -23,7 +23,7 @@ const Leaderboard: React.FC = () => {
   const [previousElo, setPreviousElo] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    setIsLoading(true); 
+    setIsLoading(true);
     const unsubscribe = subscribeToLeaderboard((updatedCommunitiesFromSubscription) => {
       
       setCommunities(currentCommunitiesState => {
@@ -48,18 +48,18 @@ const Leaderboard: React.FC = () => {
       setIsLoading(false); 
     });
 
-    return () => unsubscribe(); 
+    return () => unsubscribe();
   }, []); 
 
   const getEloChangeIcon = (community: Community) => {
     const oldElo = previousElo[community.id];
     if (oldElo === undefined || oldElo === community.elo) {
-      return <Minus className="h-4 w-4 text-muted-foreground inline-block ml-1" />;
+      return <Minus className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground inline-block ml-1" />;
     }
     if (community.elo > oldElo) {
-      return <TrendingUp className="h-4 w-4 text-green-500 inline-block ml-1" />;
+      return <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 inline-block ml-1" />;
     }
-    return <TrendingDown className="h-4 w-4 text-red-500 inline-block ml-1" />;
+    return <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-500 inline-block ml-1" />;
   };
 
 
@@ -75,12 +75,12 @@ const Leaderboard: React.FC = () => {
   return (
     <Card className="shadow-xl my-8 md:my-12">
       <CardHeader>
-        <CardTitle className="text-3xl font-bold text-center text-primary flex items-center justify-center">
-          <Trophy className="h-8 w-8 mr-3 text-yellow-500" />
+        <CardTitle className="text-2xl sm:text-3xl font-bold text-center text-primary flex items-center justify-center">
+          <Trophy className="h-7 w-7 sm:h-8 sm:w-8 mr-2 sm:mr-3 text-yellow-500" />
           Rang Lista Zajednica
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-2 sm:px-4 md:px-6">
         {communities.length === 0 && !isLoading ? (
           <p className="text-center text-muted-foreground py-4">Rang lista je trenutno prazna.</p>
         ) : (
@@ -88,26 +88,26 @@ const Leaderboard: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px] text-center font-semibold">Pozicija</TableHead>
-                <TableHead className="font-semibold">Zajednica</TableHead>
-                <TableHead className="text-center font-semibold">ELO Ocjena</TableHead>
-                <TableHead className="text-center font-semibold">Pobjede</TableHead>
-                <TableHead className="text-center font-semibold">Porazi</TableHead>
-                <TableHead className="text-center font-semibold">Odigrano</TableHead>
+                <TableHead className="w-[50px] sm:w-[80px] px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-xs sm:text-sm">Pozicija</TableHead>
+                <TableHead className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-xs sm:text-sm">Zajednica</TableHead>
+                <TableHead className="w-[70px] sm:w-auto px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-xs sm:text-sm">ELO</TableHead>
+                <TableHead className="w-[60px] sm:w-auto px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-xs sm:text-sm">Pobjede</TableHead>
+                <TableHead className="w-[60px] sm:w-auto px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-xs sm:text-sm">Porazi</TableHead>
+                <TableHead className="hidden sm:table-cell w-[70px] px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-xs sm:text-sm">Odigrano</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {communities.map((community, index) => (
                 <TableRow key={community.id} className={`transition-all duration-500 ${index < 3 ? 'bg-primary/10 hover:bg-primary/20' : ''}`}>
-                  <TableCell className="text-center font-normal text-lg">
-                    {index === 0 && <Trophy className="h-6 w-6 text-yellow-400 inline-block mr-1" />}
-                    {index === 1 && <Trophy className="h-6 w-6 text-gray-400 inline-block mr-1" />}
-                    {index === 2 && <Trophy className="h-6 w-6 text-orange-400 inline-block mr-1" />}
+                  <TableCell className="text-center font-normal text-sm sm:text-lg p-2 sm:p-4">
+                    {index === 0 && <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-400 inline-block mr-1" />}
+                    {index === 1 && <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400 inline-block mr-1" />}
+                    {index === 2 && <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-orange-400 inline-block mr-1" />}
                     {index + 1}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <div className="relative h-10 w-10 rounded-full overflow-hidden border-2 border-primary/50">
+                  <TableCell className="p-2 sm:p-4">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                      <div className="relative h-6 w-6 sm:h-8 md:h-10 sm:w-8 md:w-10 rounded-full overflow-hidden border-2 border-primary/50 flex-shrink-0">
                         <Image 
                           src={community.imageUrl} 
                           alt={community.name} 
@@ -116,15 +116,15 @@ const Leaderboard: React.FC = () => {
                           data-ai-hint="mosque community" 
                         />
                       </div>
-                      <span className="font-medium">{community.name}</span>
+                      <span className="font-medium text-xs sm:text-base">{community.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center font-semibold text-lg">
+                  <TableCell className="text-center font-semibold text-sm sm:text-lg p-2 sm:p-4">
                     {community.elo} {getEloChangeIcon(community)}
                   </TableCell>
-                  <TableCell className="text-center text-green-600 font-medium">{community.wins}</TableCell>
-                  <TableCell className="text-center text-red-600 font-medium">{community.losses}</TableCell>
-                  <TableCell className="text-center">{community.gamesPlayed}</TableCell>
+                  <TableCell className="text-center text-green-600 font-medium text-xs sm:text-sm p-2 sm:p-4">{community.wins}</TableCell>
+                  <TableCell className="text-center text-red-600 font-medium text-xs sm:text-sm p-2 sm:p-4">{community.losses}</TableCell>
+                  <TableCell className="hidden sm:table-cell text-center text-xs sm:text-sm p-2 sm:p-4">{community.gamesPlayed}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
