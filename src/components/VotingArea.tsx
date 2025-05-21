@@ -114,7 +114,7 @@ const VotingArea: React.FC = () => {
       <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 text-primary">
         Koja zajednica je bolja? Izaberite!
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-stretch justify-items-center relative">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 items-stretch justify-items-center relative">
         <CommunityCard
           community={communities[0]}
           onVote={handleVote}
