@@ -1,9 +1,9 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react'; // Removed useState, useEffect, useCallback
 import type { Community } from '@/types';
-import { getLeaderboard } from '@/app/actions'; // Import Server Action
+// Removed getLeaderboard Server Action import
 import {
   Table,
   TableBody,
@@ -17,50 +17,13 @@ import LoadingSpinner from './LoadingSpinner';
 import { Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import Image from 'next/image';
 
-const Leaderboard: React.FC = () => {
-  const [communities, setCommunities] = useState<Community[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [previousElo, setPreviousElo] = useState<Record<string, number>>({});
+interface LeaderboardProps {
+  communities: Community[];
+  isLoading: boolean;
+  previousElo: Record<string, number>;
+}
 
-  const fetchAndSetLeaderboard = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const updatedCommunities = await getLeaderboard();
-      
-      setCommunities(currentCommunitiesState => {
-        const snapshotOfOldElosForUpdate: Record<string, number> = {};
-        updatedCommunities.forEach(communityInUpdate => {
-          const communityAsItWas = currentCommunitiesState.find(c => c.id === communityInUpdate.id);
-          if (communityAsItWas) {
-            snapshotOfOldElosForUpdate[communityInUpdate.id] = communityAsItWas.elo;
-          } else {
-            // If it's a new community in the update, its "previous" ELO for THIS update cycle is its current ELO.
-            snapshotOfOldElosForUpdate[communityInUpdate.id] = communityInUpdate.elo;
-          }
-        });
-
-        setPreviousElo(currentPreviousEloMap => ({
-          ...currentPreviousEloMap, // Preserve history for communities not in the immediate last update
-          ...snapshotOfOldElosForUpdate,
-        }));
-        
-        return updatedCommunities;
-      });
-    } catch (error) {
-      console.error("Failed to fetch leaderboard:", error);
-      // Optionally, set an error state here to display to the user
-    } finally {
-      setIsLoading(false); 
-    }
-  }, []); // No dependencies, so it's stable
-
-  useEffect(() => {
-    fetchAndSetLeaderboard();
-    // The page refresh triggered by router.refresh() in VotingArea will cause this component to re-mount
-    // or its parent to re-render, triggering this effect again if dependencies change or if it's part of the refreshed tree.
-    // For a direct re-fetch without full re-mount, a more complex state management or prop drilling for a trigger would be needed.
-    // However, router.refresh() typically re-runs Server Components and fetches fresh data for Client Components.
-  }, [fetchAndSetLeaderboard]); // Rely on router.refresh() to trigger updates by re-rendering the page component tree
+const Leaderboard: React.FC<LeaderboardProps> = ({ communities, isLoading, previousElo }) => {
 
   const getEloChangeIcon = (community: Community) => {
     const oldElo = previousElo[community.id];
@@ -73,7 +36,6 @@ const Leaderboard: React.FC = () => {
     }
     return <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-500 inline-block ml-1" />;
   };
-
 
   if (isLoading && communities.length === 0) { 
     return (
@@ -105,7 +67,7 @@ const Leaderboard: React.FC = () => {
                 <TableHead className="w-[60px] sm:w-auto px-1 py-2 sm:px-2 sm:py-3 text-center font-semibold text-xs sm:text-sm">ELO</TableHead>
                 <TableHead className="w-[50px] sm:w-auto px-1 py-2 sm:px-2 sm:py-3 text-center font-semibold text-xs sm:text-sm">Pobj.</TableHead>
                 <TableHead className="w-[50px] sm:w-auto px-1 py-2 sm:px-2 sm:py-3 text-center font-semibold text-xs sm:text-sm">Por.</TableHead>
-                <TableHead className="hidden sm:table-cell w-[70px] px-1 py-2 sm:px-2 sm:py-3 text-center font-semibold text-xs sm:text-sm">Odig.</TableHead>
+                <TableHead className="hidden md:table-cell w-[70px] px-1 py-2 sm:px-2 sm:py-3 text-center font-semibold text-xs sm:text-sm">Odig.</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -136,7 +98,7 @@ const Leaderboard: React.FC = () => {
                   </TableCell>
                   <TableCell className="text-center text-green-600 font-medium text-[11px] sm:text-xs md:text-sm p-1 sm:p-2">{community.wins}</TableCell>
                   <TableCell className="text-center text-red-600 font-medium text-[11px] sm:text-xs md:text-sm p-1 sm:p-2">{community.losses}</TableCell>
-                  <TableCell className="hidden sm:table-cell text-center text-[11px] sm:text-xs md:text-sm p-1 sm:p-2">{community.gamesPlayed}</TableCell>
+                  <TableCell className="hidden md:table-cell text-center text-[11px] sm:text-xs md:text-sm p-1 sm:p-2">{community.gamesPlayed}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -149,4 +111,3 @@ const Leaderboard: React.FC = () => {
 };
 
 export default Leaderboard;
-
