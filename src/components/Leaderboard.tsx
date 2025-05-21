@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Community } from '@/types';
 import { subscribeToLeaderboard } from '@/services/communityService';
 import {
@@ -23,23 +23,49 @@ const Leaderboard: React.FC = () => {
   const [previousElo, setPreviousElo] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    setIsLoading(true);
-    const unsubscribe = subscribeToLeaderboard((updatedCommunities) => {
-      const newPreviousElo: Record<string, number> = {};
-      updatedCommunities.forEach(community => {
-        newPreviousElo[community.id] = communities.find(c => c.id === community.id)?.elo || community.elo;
-      });
-      setPreviousElo(prev => ({...prev, ...newPreviousElo})); // Store old ELOs before updating
+    setIsLoading(true); // Set loading for the initial fetch
+    const unsubscribe = subscribeToLeaderboard((updatedCommunitiesFromSubscription) => {
       
-      setCommunities(updatedCommunities);
-      setIsLoading(false);
+      // Use functional update for setCommunities to access the most recent state
+      setCommunities(currentCommunitiesState => {
+        // This is the state of 'communities' *before* this update.
+        // We'll create a snapshot of ELOs from this current state for communities
+        // that are present in the incoming update.
+        const snapshotOfOldElosForUpdate: Record<string, number> = {};
+        updatedCommunitiesFromSubscription.forEach(communityInUpdate => {
+          const communityAsItWas = currentCommunitiesState.find(c => c.id === communityInUpdate.id);
+          if (communityAsItWas) {
+            // If the community existed, its old ELO is from currentCommunitiesState
+            snapshotOfOldElosForUpdate[communityInUpdate.id] = communityAsItWas.elo;
+          } else {
+            // If the community is new in this update, its "previous" ELO is its current ELO,
+            // implying no change will be shown by getEloChangeIcon.
+            snapshotOfOldElosForUpdate[communityInUpdate.id] = communityInUpdate.elo;
+          }
+        });
+
+        // Update the persistent `previousElo` state.
+        // This merges the ELOs we just captured (from before the update)
+        // into the overall previousElo map.
+        setPreviousElo(currentPreviousEloMap => ({
+          ...currentPreviousEloMap,
+          ...snapshotOfOldElosForUpdate,
+        }));
+        
+        // Return the new data from the subscription to update the `communities` state.
+        return updatedCommunitiesFromSubscription;
+      });
+
+      setIsLoading(false); // Set loading to false after data is processed
     });
 
-    return () => unsubscribe();
-  }, [communities]); // Added communities to dependencies to correctly update previousElo
+    return () => unsubscribe(); // Cleanup subscription on unmount
+  }, []); // Empty dependency array: runs only on mount and unmount
 
   const getEloChangeIcon = (community: Community) => {
     const oldElo = previousElo[community.id];
+    // If oldElo is not set (e.g. first load, or new item not yet in previousElo with its *actual* old value),
+    // or if ELO hasn't changed, show Minus.
     if (oldElo === undefined || oldElo === community.elo) {
       return <Minus className="h-4 w-4 text-muted-foreground inline-block ml-1" />;
     }
@@ -50,7 +76,7 @@ const Leaderboard: React.FC = () => {
   };
 
 
-  if (isLoading && communities.length === 0) { // Only show initial loading spinner if no data yet
+  if (isLoading && communities.length === 0) { 
     return (
       <div className="flex flex-col items-center justify-center py-10">
         <LoadingSpinner size={48} />
