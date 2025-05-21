@@ -1,0 +1,68 @@
+
+import type { Community } from '@/types';
+
+export const mockCommunities: Community[] = [
+  {
+    id: '1',
+    name: 'Mesdžid Gračanica Centar',
+    imageUrl: 'https://placehold.co/400x300.png',
+    elo: 1200,
+    gamesPlayed: 0,
+    wins: 0,
+    losses: 0,
+  },
+  {
+    id: '2',
+    name: 'Džemat Donja Orahovica',
+    imageUrl: 'https://placehold.co/400x300.png',
+    elo: 1150,
+    gamesPlayed: 0,
+    wins: 0,
+    losses: 0,
+  },
+  {
+    id: '3',
+    name: 'Džemat Pribava',
+    imageUrl: 'https://placehold.co/400x300.png',
+    elo: 1250,
+    gamesPlayed: 0,
+    wins: 0,
+    losses: 0,
+  },
+  {
+    id: '4',
+    name: 'Džemat Škahovica',
+    imageUrl: 'https://placehold.co/400x300.png',
+    elo: 1180,
+    gamesPlayed: 0,
+    wins: 0,
+    losses: 0,
+  },
+  {
+    id: '5',
+    name: 'Džemat Soko',
+    imageUrl: 'https://placehold.co/400x300.png',
+    elo: 1220,
+    gamesPlayed: 0,
+    wins: 0,
+    losses: 0,
+  },
+   {
+    id: '6',
+    name: 'Džemat Miričina',
+    imageUrl: 'https://placehold.co/400x300.png',
+    elo: 1190,
+    gamesPlayed: 0,
+    wins: 0,
+    losses: 0,
+  },
+  {
+    id: '7',
+    name: 'Džemat Rašljeva',
+    imageUrl: 'https://placehold.co/400x300.png',
+    elo: 1210,
+    gamesPlayed: 0,
+    wins: 0,
+    losses: 0,
+  },
+];
