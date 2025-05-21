@@ -23,49 +23,36 @@ const Leaderboard: React.FC = () => {
   const [previousElo, setPreviousElo] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    setIsLoading(true); // Set loading for the initial fetch
+    setIsLoading(true); 
     const unsubscribe = subscribeToLeaderboard((updatedCommunitiesFromSubscription) => {
       
-      // Use functional update for setCommunities to access the most recent state
       setCommunities(currentCommunitiesState => {
-        // This is the state of 'communities' *before* this update.
-        // We'll create a snapshot of ELOs from this current state for communities
-        // that are present in the incoming update.
         const snapshotOfOldElosForUpdate: Record<string, number> = {};
         updatedCommunitiesFromSubscription.forEach(communityInUpdate => {
           const communityAsItWas = currentCommunitiesState.find(c => c.id === communityInUpdate.id);
           if (communityAsItWas) {
-            // If the community existed, its old ELO is from currentCommunitiesState
             snapshotOfOldElosForUpdate[communityInUpdate.id] = communityAsItWas.elo;
           } else {
-            // If the community is new in this update, its "previous" ELO is its current ELO,
-            // implying no change will be shown by getEloChangeIcon.
             snapshotOfOldElosForUpdate[communityInUpdate.id] = communityInUpdate.elo;
           }
         });
 
-        // Update the persistent `previousElo` state.
-        // This merges the ELOs we just captured (from before the update)
-        // into the overall previousElo map.
         setPreviousElo(currentPreviousEloMap => ({
           ...currentPreviousEloMap,
           ...snapshotOfOldElosForUpdate,
         }));
         
-        // Return the new data from the subscription to update the `communities` state.
         return updatedCommunitiesFromSubscription;
       });
 
-      setIsLoading(false); // Set loading to false after data is processed
+      setIsLoading(false); 
     });
 
-    return () => unsubscribe(); // Cleanup subscription on unmount
-  }, []); // Empty dependency array: runs only on mount and unmount
+    return () => unsubscribe(); 
+  }, []); 
 
   const getEloChangeIcon = (community: Community) => {
     const oldElo = previousElo[community.id];
-    // If oldElo is not set (e.g. first load, or new item not yet in previousElo with its *actual* old value),
-    // or if ELO hasn't changed, show Minus.
     if (oldElo === undefined || oldElo === community.elo) {
       return <Minus className="h-4 w-4 text-muted-foreground inline-block ml-1" />;
     }
@@ -112,7 +99,7 @@ const Leaderboard: React.FC = () => {
             <TableBody>
               {communities.map((community, index) => (
                 <TableRow key={community.id} className={`transition-all duration-500 ${index < 3 ? 'bg-primary/10 hover:bg-primary/20' : ''}`}>
-                  <TableCell className="text-center font-medium text-lg">
+                  <TableCell className="text-center font-normal text-lg">
                     {index === 0 && <Trophy className="h-6 w-6 text-yellow-400 inline-block mr-1" />}
                     {index === 1 && <Trophy className="h-6 w-6 text-gray-400 inline-block mr-1" />}
                     {index === 2 && <Trophy className="h-6 w-6 text-orange-400 inline-block mr-1" />}
