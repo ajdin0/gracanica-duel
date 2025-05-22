@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import type { Community } from '@/types';
-import { adminUpdateCommunityStats, getAdminCommunities } from '@/app/admin/actions';
+import { adminUpdateCommunityStats, getAdminCommunities, adminResetAllCommunityStats } from '@/app/admin/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,9 +14,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { Pencil, Save, RefreshCw, Ban } from 'lucide-react';
+import { Pencil, Save, RefreshCw, Ban, AlertTriangle } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { Card as UICard, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -29,21 +40,13 @@ interface EditableCommunity extends Community {
 }
 
 interface AdminDashboardPageProps {
-  initialCommunities: Community[]; // Data from SSR, potentially stale
+  initialCommunities: Community[];
 }
 
 export default function AdminDashboardPage({ initialCommunities: ssrCommunities }: AdminDashboardPageProps) {
-  const [communities, setCommunities] = useState<EditableCommunity[]>(() => 
-    ssrCommunities.map(c => ({
-        ...c,
-        isEditing: false,
-        originalElo: c.elo,
-        originalWins: c.wins,
-        originalLosses: c.losses,
-        originalGamesPlayed: c.gamesPlayed,
-    }))
-  );
-  const [isLoading, setIsLoading] = useState(true); // Start true for initial client fetch
+  const [communities, setCommunities] = useState<EditableCommunity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isResetting, setIsResetting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -66,14 +69,17 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
     } catch (error) {
       console.error("Error fetching admin communities:", error);
       toast({ variant: "destructive", title: "Greška pri učitavanju", description: "Nije moguće učitati podatke o zajednicama." });
+      setCommunities(mapToEditable(ssrCommunities)); // Fallback to SSR data on fetch error
     } finally {
       setIsLoading(false);
     }
-  }, [mapToEditable, toast]);
+  }, [mapToEditable, toast, ssrCommunities]);
 
   useEffect(() => {
+    // Use SSR data for initial render, then fetch fresh data on client
+    setCommunities(mapToEditable(ssrCommunities));
     fetchAndSetCommunities();
-  }, [fetchAndSetCommunities]);
+  }, [fetchAndSetCommunities, ssrCommunities, mapToEditable]);
 
   const handleEdit = (id: string) => {
     setCommunities(prev =>
@@ -85,7 +91,7 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
           originalWins: c.wins,
           originalLosses: c.losses,
           originalGamesPlayed: c.gamesPlayed,
-        } : { ...c, isEditing: false } // Close other editing rows
+        } : { ...c, isEditing: false }
       )
     );
   };
@@ -111,13 +117,18 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
       prev.map(c => {
         if (c.id === id) {
           const currentFieldValue = c[field] as number;
-          const newFieldValue = isNaN(numValue) ? currentFieldValue : numValue;
+          const newFieldValue = isNaN(numValue) ? currentFieldValue : numValue < 0 ? 0 : numValue; // Prevent negative numbers
           const updatedCommunity = { ...c, [field]: newFieldValue };
           
+          // Automatically update gamesPlayed if wins or losses change, unless gamesPlayed itself is being edited
           if (field === 'wins' || field === 'losses') {
-            const wins = field === 'wins' ? newFieldValue : c.wins;
-            const losses = field === 'losses' ? newFieldValue : c.losses;
-            updatedCommunity.gamesPlayed = wins + losses;
+             const wins = field === 'wins' ? newFieldValue : c.wins;
+             const losses = field === 'losses' ? newFieldValue : c.losses;
+             updatedCommunity.gamesPlayed = wins + losses;
+          } else if (field === 'gamesPlayed') {
+            // If gamesPlayed is edited directly, ensure wins + losses don't exceed it (or adjust them proportionally)
+            // For simplicity, we'll let gamesPlayed be set independently here.
+            // A more complex validation could be added if needed.
           }
           return updatedCommunity;
         }
@@ -130,7 +141,7 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
     const communityToSave = communities.find(c => c.id === id);
     if (!communityToSave) return;
     
-    setIsLoading(true); // Indicate loading for the save/refresh operation
+    setIsLoading(true); 
     try {
       const result = await adminUpdateCommunityStats(
         id,
@@ -142,19 +153,37 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
 
       if (result.success) {
         toast({ title: "Uspjeh", description: `Statistika za ${communityToSave.name} je ažurirana.` });
-        await fetchAndSetCommunities(); // Re-fetch to confirm and get latest state
-        router.refresh(); // Refresh server components on the page if any
+        await fetchAndSetCommunities(); 
+        router.refresh(); 
       } else {
         toast({ variant: "destructive", title: "Greška", description: result.message || "Nije uspjelo ažuriranje." });
-        // Optionally, revert local changes or re-fetch to be safe if save fails
-        await fetchAndSetCommunities(); // Re-fetch to show actual server state if save failed
+        await fetchAndSetCommunities(); 
       }
     } catch (error) {
       console.error("Save error:", error);
       toast({ variant: "destructive", title: "Greška", description: "Došlo je do neočekivane greške." });
-      await fetchAndSetCommunities(); // Re-fetch on unexpected error
+      await fetchAndSetCommunities(); 
     } finally {
-      // setIsLoading(false); // fetchAndSetCommunities will handle its own isLoading
+      // setIsLoading(false); fetchAndSetCommunities handles its own isLoading
+    }
+  };
+
+  const handleResetAllStats = async () => {
+    setIsResetting(true);
+    try {
+      const result = await adminResetAllCommunityStats();
+      if (result.success) {
+        toast({ title: "Uspjeh", description: "Sve statistike zajednica su resetirane na početne vrijednosti." });
+        await fetchAndSetCommunities();
+        router.refresh();
+      } else {
+        toast({ variant: "destructive", title: "Greška pri resetiranju", description: result.message || "Nije uspjelo resetiranje statistika." });
+      }
+    } catch (error) {
+      console.error("Error resetting all stats:", error);
+      toast({ variant: "destructive", title: "Greška", description: "Došlo je do neočekivane greške prilikom resetiranja." });
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -186,10 +215,32 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <Button onClick={refreshListButtonAction} variant="outline" disabled={isLoading}>
+      <div className="flex flex-col sm:flex-row justify-end gap-2 items-center">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" disabled={isLoading || isResetting}>
+              <AlertTriangle className="mr-2 h-4 w-4" /> Resetuj Sve Statistike
+              {isResetting && <LoadingSpinner size={16} className="ml-2" />}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Potvrdi Resetiranje</AlertDialogTitle>
+              <AlertDialogDescription>
+                Da li ste sigurni da želite resetirati statistike SVIH zajednica na početne vrijednosti? Ova akcija se ne može poništiti.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isResetting}>Odustani</AlertDialogCancel>
+              <AlertDialogAction onClick={handleResetAllStats} disabled={isResetting} className="bg-destructive hover:bg-destructive/90">
+                {isResetting ? <LoadingSpinner size={16} /> : "Resetuj"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        <Button onClick={refreshListButtonAction} variant="outline" disabled={isLoading || isResetting}>
           <RefreshCw className="mr-2 h-4 w-4" /> Osvježi Listu
-          {isLoading && <LoadingSpinner size={16} className="ml-2" />}
+          {(isLoading && !isResetting) && <LoadingSpinner size={16} className="ml-2" />}
         </Button>
       </div>
       <UICard>
@@ -259,7 +310,8 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
                           value={community.gamesPlayed}
                           onChange={e => handleInputChange(community.id, 'gamesPlayed', e.target.value)}
                           className="max-w-20 text-right mx-auto sm:mx-0 ml-auto"
-                          disabled={isLoading && community.isEditing}
+                          disabled={(isLoading && community.isEditing) || true} // Make gamesPlayed always readonly in edit mode
+                          readOnly // Ensure it's clear this is auto-calculated or for display
                         />
                       ) : (
                         community.gamesPlayed
@@ -276,7 +328,7 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
                           </Button>
                         </div>
                       ) : (
-                        <Button onClick={() => handleEdit(community.id)} variant="outline" size="sm" disabled={isLoading}>
+                        <Button onClick={() => handleEdit(community.id)} variant="outline" size="sm" disabled={isLoading || communities.some(c => c.isEditing && c.id !== community.id)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       )}
@@ -291,3 +343,4 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
     </div>
   );
 }
+

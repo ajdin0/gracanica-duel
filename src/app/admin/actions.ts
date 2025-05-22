@@ -6,7 +6,8 @@ import { redirect } from 'next/navigation';
 import type { Community } from '@/types';
 import { 
   getAllCommunities as getAllCommunitiesDb, 
-  updateCommunityStats as updateCommunityStatsDb 
+  updateCommunityStats as updateCommunityStatsDb,
+  resetAllCommunitiesToMockData as resetAllCommunitiesToMockDataDb
 } from '@/lib/communityStore';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "TringAjdin24!";
@@ -78,5 +79,27 @@ export async function adminUpdateCommunityStats(
   } catch (error) {
     console.error(`adminUpdateCommunityStats: Error updating community ${communityId}:`, error);
     return { success: false, message: 'Došlo je do greške na serveru prilikom ažuriranja.' };
+  }
+}
+
+export async function adminResetAllCommunityStats(): Promise<{ success: boolean; message?: string }> {
+  const isAdmin = await checkAdminAuth();
+  if (!isAdmin) {
+    console.log('adminResetAllCommunityStats: Not authorized.');
+    return { success: false, message: 'Niste ovlašteni za ovu akciju.' };
+  }
+
+  console.log('adminResetAllCommunityStats: Authorized. Attempting to reset all community stats.');
+  try {
+    const result = await resetAllCommunitiesToMockDataDb();
+    if (result.success) {
+      console.log('adminResetAllCommunityStats: Successfully reset all community stats.');
+    } else {
+      console.warn(`adminResetAllCommunityStats: Failed to reset stats. Message: ${result.message}`);
+    }
+    return result;
+  } catch (error) {
+    console.error('adminResetAllCommunityStats: Error resetting stats:', error);
+    return { success: false, message: 'Došlo je do greške na serveru prilikom resetiranja.' };
   }
 }

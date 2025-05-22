@@ -1,6 +1,7 @@
 
 import type { Community } from '@/types';
 import { getKvCommunities, setKvCommunities } from './kvCommunityService';
+import { mockCommunities } from '@/data/mockCommunities'; // Import mockCommunities
 
 const K_FACTOR = 32;
 
@@ -96,4 +97,17 @@ export async function updateCommunityStats(
   communities[communityIndex] = updatedCommunity;
   await setKvCommunities(communities);
   return { success: true };
+}
+
+export async function resetAllCommunitiesToMockData(): Promise<{ success: boolean; message?: string }> {
+  try {
+    // Create a deep copy of mockCommunities to ensure the original isn't mutated
+    // and that KV receives a fresh, serializable object.
+    const pristineMockData = JSON.parse(JSON.stringify(mockCommunities));
+    await setKvCommunities(pristineMockData);
+    return { success: true };
+  } catch (error) {
+    console.error("Error resetting communities to mock data in store:", error);
+    return { success: false, message: "Greška prilikom resetiranja podataka o zajednicama." };
+  }
 }
