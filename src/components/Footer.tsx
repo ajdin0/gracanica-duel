@@ -2,7 +2,7 @@
 "use client";
 import React from 'react';
 import { Facebook, Twitter, MessageSquare, Share2 } from 'lucide-react';
-import AdminLoginButton from './AdminLoginButton';
+import AdminLoginButton from './AdminLoginButton'; // Import the button
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -52,7 +52,7 @@ const Footer: React.FC = () => {
         </div>
         <div className="flex items-center justify-center text-sm">
           <span>&copy; {currentYear} Gračanica Duel. Sva prava zadržana.</span>
-          <AdminLoginButton />
+          <AdminLoginButton /> 
         </div>
       </div>
     </footer>

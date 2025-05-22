@@ -15,6 +15,7 @@ const Header: React.FC = () => {
           </h1>
         </Link>
         <nav className="flex items-center space-x-1 sm:space-x-2">
+          {/* Links for Karta and Zajednice removed */}
           <ThemeToggleButton />
         </nav>
       </div>

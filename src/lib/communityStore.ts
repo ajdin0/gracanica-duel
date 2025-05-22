@@ -17,18 +17,18 @@ function calculateEloInternal(winnerElo: number, loserElo: number): { newWinnerE
   return { newWinnerElo, newLoserElo };
 }
 
-export async function getAllCommunities(): Promise<Community[]> {
+export async function getAllCommunitiesDb(): Promise<Community[]> { // Renamed to avoid conflict if exported directly
   const communities = await getKvCommunities();
   return JSON.parse(JSON.stringify(communities)); // Return deep copy
 }
 
-export async function getCommunityById(id: string): Promise<Community | undefined> {
+export async function getCommunityByIdDb(id: string): Promise<Community | undefined> { // Renamed
   const communities = await getKvCommunities();
   const community = communities.find(c => c.id === id);
   return community ? JSON.parse(JSON.stringify(community)) : undefined;
 }
 
-export async function getRandomPairForVoting(): Promise<[Community, Community] | []> {
+export async function getRandomPairForVotingDb(): Promise<[Community, Community] | []> { // Renamed
   const communities = await getKvCommunities();
   if (communities.length < 2) {
     return [];
@@ -45,7 +45,7 @@ export async function getRandomPairForVoting(): Promise<[Community, Community] |
   ];
 }
 
-export async function recordVoteAndUpdateElo(winnerId: string, loserId: string): Promise<{ success: boolean; message?: string }> {
+export async function recordVoteAndUpdateEloDb(winnerId: string, loserId: string): Promise<{ success: boolean; message?: string }> { // Renamed
   let communities = await getKvCommunities();
   const winnerIndex = communities.findIndex(c => c.id === winnerId);
   const loserIndex = communities.findIndex(c => c.id === loserId);
@@ -74,7 +74,7 @@ export async function recordVoteAndUpdateElo(winnerId: string, loserId: string):
   return { success: true };
 }
 
-export async function updateCommunityStats(
+export async function updateCommunityStatsDb( // Renamed
   communityId: string,
   elo: number,
   wins: number,
@@ -92,22 +92,30 @@ export async function updateCommunityStats(
   updatedCommunity.elo = elo;
   updatedCommunity.wins = wins;
   updatedCommunity.losses = losses;
-  updatedCommunity.gamesPlayed = gamesPlayed; // gamesPlayed is now directly set
+  updatedCommunity.gamesPlayed = gamesPlayed; 
 
   communities[communityIndex] = updatedCommunity;
   await setKvCommunities(communities);
   return { success: true };
 }
 
-export async function resetAllCommunitiesToMockData(): Promise<{ success: boolean; message?: string }> {
+export async function resetAllCommunitiesToMockDataDb(): Promise<{ success: boolean; message?: string }> { // Renamed
   try {
-    // Create a deep copy of mockCommunities to ensure the original isn't mutated
-    // and that KV receives a fresh, serializable object.
     const pristineMockData = JSON.parse(JSON.stringify(mockCommunities));
     await setKvCommunities(pristineMockData);
     return { success: true };
-  } catch (error) {
+  } catch (error)
+ {
     console.error("Error resetting communities to mock data in store:", error);
     return { success: false, message: "Greška prilikom resetiranja podataka o zajednicama." };
   }
 }
+
+// Renamed functions to getAllCommunities, getCommunityById etc. so they can be called by server actions with those names
+// These will be the functions actually exported and used by actions.ts etc.
+export const getAllCommunities = getAllCommunitiesDb;
+export const getCommunityById = getCommunityByIdDb;
+export const getRandomPairForVoting = getRandomPairForVotingDb;
+export const recordVoteAndUpdateElo = recordVoteAndUpdateEloDb;
+export const updateCommunityStats = updateCommunityStatsDb;
+export const resetAllCommunitiesToMockData = resetAllCommunitiesToMockDataDb;

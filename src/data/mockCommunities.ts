@@ -10,6 +10,7 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
+    // description and detailsImageUrl removed
   },
   {
     id: '2',

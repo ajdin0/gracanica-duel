@@ -62,24 +62,37 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
   }, []);
 
   const fetchAndSetCommunities = useCallback(async () => {
+    console.log("AdminDashboardPage: Fetching and setting communities...");
     setIsLoading(true);
     try {
       const updatedCommunitiesFromServer = await getAdminCommunities();
+      console.log("AdminDashboardPage: Fetched communities from server:", updatedCommunitiesFromServer.length);
       setCommunities(mapToEditable(updatedCommunitiesFromServer));
     } catch (error) {
-      console.error("Error fetching admin communities:", error);
+      console.error("AdminDashboardPage: Error fetching admin communities:", error);
       toast({ variant: "destructive", title: "Greška pri učitavanju", description: "Nije moguće učitati podatke o zajednicama." });
-      setCommunities(mapToEditable(ssrCommunities)); // Fallback to SSR data on fetch error
+      // Fallback to SSR data on fetch error if it's different or seems more reliable
+      // For simplicity, we might just show an error or rely on the initial SSR data if fetch completely fails.
+      // if (ssrCommunities && ssrCommunities.length > 0) {
+      //   setCommunities(mapToEditable(ssrCommunities));
+      // } else {
+      //   setCommunities([]);
+      // }
+       setCommunities(mapToEditable(ssrCommunities)); // Fallback to initial prop data
     } finally {
       setIsLoading(false);
+      console.log("AdminDashboardPage: Finished fetching and setting communities. isLoading set to false.");
     }
   }, [mapToEditable, toast, ssrCommunities]);
 
   useEffect(() => {
-    // Use SSR data for initial render, then fetch fresh data on client
+    console.log("AdminDashboardPage: useEffect for initial data load triggered.");
+    // Use SSR data for the very first render to avoid layout shifts
     setCommunities(mapToEditable(ssrCommunities));
+    // Then, fetch the latest data from the client side
     fetchAndSetCommunities();
   }, [fetchAndSetCommunities, ssrCommunities, mapToEditable]);
+
 
   const handleEdit = (id: string) => {
     setCommunities(prev =>
@@ -91,7 +104,7 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
           originalWins: c.wins,
           originalLosses: c.losses,
           originalGamesPlayed: c.gamesPlayed,
-        } : { ...c, isEditing: false }
+        } : { ...c, isEditing: false } // Ensure only one row is editable
       )
     );
   };
@@ -117,18 +130,13 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
       prev.map(c => {
         if (c.id === id) {
           const currentFieldValue = c[field] as number;
-          const newFieldValue = isNaN(numValue) ? currentFieldValue : numValue < 0 ? 0 : numValue; // Prevent negative numbers
+          const newFieldValue = isNaN(numValue) ? currentFieldValue : numValue < 0 ? 0 : numValue; 
           const updatedCommunity = { ...c, [field]: newFieldValue };
           
-          // Automatically update gamesPlayed if wins or losses change, unless gamesPlayed itself is being edited
           if (field === 'wins' || field === 'losses') {
              const wins = field === 'wins' ? newFieldValue : c.wins;
              const losses = field === 'losses' ? newFieldValue : c.losses;
              updatedCommunity.gamesPlayed = wins + losses;
-          } else if (field === 'gamesPlayed') {
-            // If gamesPlayed is edited directly, ensure wins + losses don't exceed it (or adjust them proportionally)
-            // For simplicity, we'll let gamesPlayed be set independently here.
-            // A more complex validation could be added if needed.
           }
           return updatedCommunity;
         }
@@ -141,14 +149,20 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
     const communityToSave = communities.find(c => c.id === id);
     if (!communityToSave) return;
     
-    setIsLoading(true); 
+    // Before saving, ensure gamesPlayed is the sum of wins and losses if it wasn't the field being directly edited to a value that mismatches.
+    // The handleInputChange should already ensure this.
+    const finalWins = communityToSave.wins;
+    const finalLosses = communityToSave.losses;
+    const finalGamesPlayed = finalWins + finalLosses;
+
+    // setIsLoading(true); // Handled by fetchAndSetCommunities
     try {
       const result = await adminUpdateCommunityStats(
         id,
         communityToSave.elo,
-        communityToSave.wins,
-        communityToSave.losses,
-        communityToSave.gamesPlayed
+        finalWins,
+        finalLosses,
+        finalGamesPlayed // Send the derived gamesPlayed
       );
 
       if (result.success) {
@@ -157,14 +171,12 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
         router.refresh(); 
       } else {
         toast({ variant: "destructive", title: "Greška", description: result.message || "Nije uspjelo ažuriranje." });
-        await fetchAndSetCommunities(); 
+        await fetchAndSetCommunities(); // Re-fetch to get consistent state
       }
     } catch (error) {
       console.error("Save error:", error);
       toast({ variant: "destructive", title: "Greška", description: "Došlo je do neočekivane greške." });
       await fetchAndSetCommunities(); 
-    } finally {
-      // setIsLoading(false); fetchAndSetCommunities handles its own isLoading
     }
   };
 
@@ -307,11 +319,10 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
                       {community.isEditing ? (
                         <Input
                           type="number"
-                          value={community.gamesPlayed}
-                          onChange={e => handleInputChange(community.id, 'gamesPlayed', e.target.value)}
-                          className="max-w-20 text-right mx-auto sm:mx-0 ml-auto"
-                          disabled={(isLoading && community.isEditing) || true} // Make gamesPlayed always readonly in edit mode
-                          readOnly // Ensure it's clear this is auto-calculated or for display
+                          value={community.gamesPlayed} // This will reflect wins + losses
+                          readOnly // Make it clear this is derived
+                          className="max-w-20 text-right mx-auto sm:mx-0 ml-auto bg-muted/50 cursor-not-allowed"
+                          disabled={(isLoading && community.isEditing)}
                         />
                       ) : (
                         community.gamesPlayed
@@ -328,7 +339,7 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
                           </Button>
                         </div>
                       ) : (
-                        <Button onClick={() => handleEdit(community.id)} variant="outline" size="sm" disabled={isLoading || communities.some(c => c.isEditing && c.id !== community.id)}>
+                         <Button onClick={() => handleEdit(community.id)} variant="outline" size="sm" disabled={isLoading || communities.some(c => c.isEditing && c.id !== community.id)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       )}
@@ -343,4 +354,3 @@ export default function AdminDashboardPage({ initialCommunities: ssrCommunities 
     </div>
   );
 }
-

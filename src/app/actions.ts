@@ -5,8 +5,9 @@ import type { Community } from '@/types';
 import { 
   getRandomPairForVoting as getRandomPairDb, 
   recordVoteAndUpdateElo as recordVoteDb,
-  getAllCommunities as getAllCommunitiesDb
-} from '@/lib/communityStore';
+  getAllCommunities as getAllCommunitiesDb,
+  // getCommunityById as getCommunityByIdDb // No longer needed here if not used by public pages
+} from '@/lib/communityStore'; // Updated to use renamed functions from communityStore
 
 export async function getCommunitiesForVoting(): Promise<[Community, Community] | []> {
   return await getRandomPairDb();
@@ -21,3 +22,6 @@ export async function getLeaderboard(): Promise<Community[]> {
   // Sort by ELO descending
   return communities.sort((a, b) => b.elo - a.elo);
 }
+
+// Removed getAllCommunities and getCommunityById as they were for Karta/Zajednice pages
+// If any other public part needs them, they can be re-added.

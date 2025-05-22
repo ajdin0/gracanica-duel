@@ -33,12 +33,11 @@ const AdminLoginButton: React.FC = () => {
   const [lastClickTime, setLastClickTime] = useState(0);
 
   const handleShieldClick = () => {
-    if (isDialogOpen) return; // Don't process clicks if dialog is already open
+    if (isDialogOpen) return; 
 
     const currentTime = Date.now();
 
     if (clickCount === 0 || lastClickTime === 0) {
-      // First click of a new potential sequence
       setClickCount(1);
       setLastClickTime(currentTime);
       return;
@@ -47,11 +46,9 @@ const AdminLoginButton: React.FC = () => {
     const interval = currentTime - lastClickTime;
 
     if (interval >= MIN_CLICK_INTERVAL_MS && interval <= MAX_CLICK_INTERVAL_MS) {
-      // Click is within the valid time window, continue sequence
       setClickCount(prevCount => prevCount + 1);
       setLastClickTime(currentTime);
     } else {
-      // Click is too fast or too slow, reset sequence with this click as the first
       setClickCount(1);
       setLastClickTime(currentTime);
     }
@@ -59,9 +56,8 @@ const AdminLoginButton: React.FC = () => {
 
   useEffect(() => {
     if (clickCount === REQUIRED_CLICKS) {
-      setPasswordInput(''); // Clear password input before opening dialog
+      setPasswordInput(''); 
       setIsDialogOpen(true);
-      // Reset click sequence state after successfully triggering the dialog
       setClickCount(0); 
       setLastClickTime(0);
     }
@@ -77,7 +73,7 @@ const AdminLoginButton: React.FC = () => {
           description: 'Preusmjeravanje na admin panel...',
         });
         router.push('/admin');
-        setIsDialogOpen(false); // Close dialog on success
+        setIsDialogOpen(false); 
         setPasswordInput(''); 
       } else {
         toast({
@@ -85,7 +81,7 @@ const AdminLoginButton: React.FC = () => {
           title: 'Prijava neuspješna',
           description: result.message || 'Netačna lozinka ili je došlo do greške.',
         });
-        setPasswordInput(''); // Clear password input on failure to allow re-entry
+        setPasswordInput(''); 
       }
     } catch (error) {
       console.error('Admin login error:', error);
@@ -126,7 +122,6 @@ const AdminLoginButton: React.FC = () => {
       <Dialog open={isDialogOpen} onOpenChange={(open) => {
         setIsDialogOpen(open);
         if (!open) {
-            // If dialog is closed (e.g., by "Odustani" or 'X'), reset the click sequence
             setPasswordInput(''); 
             setClickCount(0); 
             setLastClickTime(0);
