@@ -10,7 +10,7 @@ export default async function AdminPage() {
   const isAuthenticated = await checkAdminAuth();
 
   if (!isAuthenticated) {
-    redirect('/'); // Redirect to main page if not authenticated
+    redirect('/'); // Redirect to main page if not authenticated, user can login from footer
   }
 
   let initialCommunities: Community[] = [];
