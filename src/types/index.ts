@@ -7,6 +7,4 @@ export interface Community {
   gamesPlayed: number;
   wins: number;
   losses: number;
-  // description?: string; // Removed
-  // detailsImageUrl?: string; // Removed
 }

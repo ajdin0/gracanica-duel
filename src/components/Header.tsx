@@ -1,9 +1,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Swords } from 'lucide-react'; // Removed MapPinned, Users
+import { Swords } from 'lucide-react';
 import { ThemeToggleButton } from './ThemeToggleButton';
-// Removed Button import as it might not be needed if other buttons are gone
 
 const Header: React.FC = () => {
   return (
@@ -16,7 +15,6 @@ const Header: React.FC = () => {
           </h1>
         </Link>
         <nav className="flex items-center space-x-1 sm:space-x-2">
-          {/* Links to Zajednice and Karta removed */}
           <ThemeToggleButton />
         </nav>
       </div>

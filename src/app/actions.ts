@@ -5,8 +5,7 @@ import type { Community } from '@/types';
 import { 
   getRandomPairForVoting as getRandomPairDb, 
   recordVoteAndUpdateElo as recordVoteDb,
-  getAllCommunities as getAllCommunitiesDb,
-  // getCommunityById as getCommunityByIdDb // Removed
+  getAllCommunities as getAllCommunitiesDb
 } from '@/lib/communityStore';
 
 export async function getCommunitiesForVoting(): Promise<[Community, Community] | []> {
@@ -22,6 +21,3 @@ export async function getLeaderboard(): Promise<Community[]> {
   // Sort by ELO descending
   return communities.sort((a, b) => b.elo - a.elo);
 }
-
-// Removed getCommunityById
-// Removed getAllCommunities (as it was a simple pass-through to the Db one)
