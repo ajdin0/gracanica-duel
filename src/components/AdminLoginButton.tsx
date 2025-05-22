@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { login } from '@/app/admin/actions';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -18,12 +18,43 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Shield } from 'lucide-react';
 
+const REQUIRED_CLICKS = 5;
+const MAX_CLICK_INTERVAL_MS = 1000; // 1 second
+
 const AdminLoginButton: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+
+  const [clickCount, setClickCount] = useState(0);
+  const [lastClickTime, setLastClickTime] = useState(0);
+
+  const handleShieldClick = () => {
+    if (isDialogOpen) return; // Don't process clicks if dialog is already open
+
+    const currentTime = Date.now();
+
+    if (currentTime - lastClickTime > MAX_CLICK_INTERVAL_MS) {
+      // If too much time passed since last click, or first click in a potential sequence
+      setClickCount(1);
+    } else {
+      // If within time, increment
+      setClickCount(prevCount => prevCount + 1);
+    }
+    setLastClickTime(currentTime);
+  };
+
+  useEffect(() => {
+    if (clickCount === REQUIRED_CLICKS) {
+      setPasswordInput(''); // Clear password field when dialog is opened
+      setIsDialogOpen(true);
+      // Reset for next attempt
+      setClickCount(0);
+      setLastClickTime(0);
+    }
+  }, [clickCount]);
 
   const handleAdminLogin = useCallback(async () => {
     setIsLoading(true);
@@ -36,15 +67,13 @@ const AdminLoginButton: React.FC = () => {
         });
         router.push('/admin');
         setIsDialogOpen(false);
-        setPasswordInput(''); // Clear password on successful login
+        setPasswordInput(''); 
       } else {
         toast({
           variant: 'destructive',
           title: 'Prijava neuspješna',
           description: result.message || 'Netačna lozinka ili je došlo do greške.',
         });
-        // Keep dialog open for retry, password field can remain for user convenience or be cleared
-        // setPasswordInput(''); // Optionally clear password on failed attempt
       }
     } catch (error) {
       console.error('Admin login error:', error);
@@ -71,19 +100,24 @@ const AdminLoginButton: React.FC = () => {
     }
   };
 
-  const handleOpenDialog = () => {
-    setPasswordInput(''); // Clear password field when dialog is opened
-    setIsDialogOpen(true);
-  };
-
   return (
     <>
-      <Button variant="ghost" size="sm" onClick={handleOpenDialog} className="flex items-center">
-        <Shield className="mr-2 h-4 w-4" /> Admin Panel
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleShieldClick}
+        className="ml-2 p-1 h-6 w-6 hover:bg-transparent" // Adjusted size and hover
+        aria-label="Admin Panel Access"
+      >
+        <Shield className="h-4 w-4 text-muted-foreground hover:text-foreground" />
       </Button>
       <Dialog open={isDialogOpen} onOpenChange={(open) => {
         setIsDialogOpen(open);
-        if (!open) setPasswordInput(''); // Clear password if dialog is closed for any reason (X, Esc, Odustani)
+        if (!open) {
+            setPasswordInput(''); 
+            setClickCount(0); // Reset click count if dialog is closed
+            setLastClickTime(0);
+        }
       }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -107,7 +141,7 @@ const AdminLoginButton: React.FC = () => {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline"> {/* No need to clear password here, onOpenChange handles it */}
+                <Button type="button" variant="outline">
                   Odustani
                 </Button>
               </DialogClose>

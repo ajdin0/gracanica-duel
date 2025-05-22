@@ -1,13 +1,11 @@
 
 "use client";
 import React from 'react';
-import { Facebook, Twitter, MessageSquare, Share2, Shield } from 'lucide-react'; // Added Shield
-import AdminLoginButton from './AdminLoginButton'; // Assuming this is the button for admin login
+import { Facebook, Twitter, MessageSquare, Share2 } from 'lucide-react';
+import AdminLoginButton from './AdminLoginButton';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
-  // Use the canonical production URL for sharing. 
-  // Ensure NEXT_PUBLIC_APP_URL is set in your Vercel environment variables for production.
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://gracanica-duel.vercel.app';
   const shareTitle = "Gračanica Duel - Glasajte za omiljenu zajednicu!";
 
@@ -16,9 +14,6 @@ const Footer: React.FC = () => {
   return (
     <footer className="bg-secondary text-secondary-foreground py-6 mt-auto">
       <div className="container mx-auto px-4 text-center">
-        <div className="mb-4">
-          <AdminLoginButton />
-        </div>
         <div className="flex justify-center space-x-4 mb-4">
           <a
             href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(APP_URL)}`}
@@ -52,12 +47,13 @@ const Footer: React.FC = () => {
             aria-label="Podijeli na Viberu"
             className="text-secondary-foreground hover:text-primary transition-colors"
           >
-            <Share2 size={24} /> {/* Using Share2 icon for Viber */}
+            <Share2 size={24} />
           </a>
         </div>
-        <p className="text-sm">
-          &copy; {currentYear} Gračanica Duel. Sva prava zadržana.
-        </p>
+        <div className="flex items-center justify-center text-sm">
+          <span>&copy; {currentYear} Gračanica Duel. Sva prava zadržana.</span>
+          <AdminLoginButton />
+        </div>
       </div>
     </footer>
   );
