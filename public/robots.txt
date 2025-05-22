@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://gracanica-duel.vercel.app/sitemap.xml
