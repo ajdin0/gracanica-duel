@@ -18,10 +18,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Pencil, Save, RefreshCw, Ban } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { Card as UICard, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface EditableCommunity extends Community {
   isEditing?: boolean;
-  // Store original values in case of cancel
   originalElo?: number;
   originalWins?: number;
   originalLosses?: number;
@@ -29,12 +29,21 @@ interface EditableCommunity extends Community {
 }
 
 interface AdminDashboardPageProps {
-  initialCommunities: Community[];
+  initialCommunities: Community[]; // Data from SSR, potentially stale
 }
 
-export default function AdminDashboardPage({ initialCommunities }: AdminDashboardPageProps) {
-  const [communities, setCommunities] = useState<EditableCommunity[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+export default function AdminDashboardPage({ initialCommunities: ssrCommunities }: AdminDashboardPageProps) {
+  const [communities, setCommunities] = useState<EditableCommunity[]>(() => 
+    ssrCommunities.map(c => ({
+        ...c,
+        isEditing: false,
+        originalElo: c.elo,
+        originalWins: c.wins,
+        originalLosses: c.losses,
+        originalGamesPlayed: c.gamesPlayed,
+    }))
+  );
+  const [isLoading, setIsLoading] = useState(true); // Start true for initial client fetch
   const { toast } = useToast();
   const router = useRouter();
 
@@ -49,9 +58,22 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
     }));
   }, []);
 
+  const fetchAndSetCommunities = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const updatedCommunitiesFromServer = await getAdminCommunities();
+      setCommunities(mapToEditable(updatedCommunitiesFromServer));
+    } catch (error) {
+      console.error("Error fetching admin communities:", error);
+      toast({ variant: "destructive", title: "Greška pri učitavanju", description: "Nije moguće učitati podatke o zajednicama." });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [mapToEditable, toast]);
+
   useEffect(() => {
-    setCommunities(mapToEditable(initialCommunities));
-  }, [initialCommunities, mapToEditable]);
+    fetchAndSetCommunities();
+  }, [fetchAndSetCommunities]);
 
   const handleEdit = (id: string) => {
     setCommunities(prev =>
@@ -59,12 +81,11 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
         c.id === id ? { 
           ...c, 
           isEditing: true,
-          // Store current values as original for potential cancel
           originalElo: c.elo,
           originalWins: c.wins,
           originalLosses: c.losses,
           originalGamesPlayed: c.gamesPlayed,
-        } : c
+        } : { ...c, isEditing: false } // Close other editing rows
       )
     );
   };
@@ -75,7 +96,6 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
         c.id === id ? { 
           ...c, 
           isEditing: false,
-          // Restore original values
           elo: c.originalElo !== undefined ? c.originalElo : c.elo,
           wins: c.originalWins !== undefined ? c.originalWins : c.wins,
           losses: c.originalLosses !== undefined ? c.originalLosses : c.losses,
@@ -90,10 +110,14 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
     setCommunities(prev =>
       prev.map(c => {
         if (c.id === id) {
-          const updatedCommunity = { ...c, [field]: isNaN(numValue) ? 0 : numValue };
-          // If wins or losses are changed, update gamesPlayed
+          const currentFieldValue = c[field] as number;
+          const newFieldValue = isNaN(numValue) ? currentFieldValue : numValue;
+          const updatedCommunity = { ...c, [field]: newFieldValue };
+          
           if (field === 'wins' || field === 'losses') {
-            updatedCommunity.gamesPlayed = (field === 'wins' ? numValue : c.wins) + (field === 'losses' ? numValue : c.losses);
+            const wins = field === 'wins' ? newFieldValue : c.wins;
+            const losses = field === 'losses' ? newFieldValue : c.losses;
+            updatedCommunity.gamesPlayed = wins + losses;
           }
           return updatedCommunity;
         }
@@ -105,8 +129,8 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
   const handleSave = async (id: string) => {
     const communityToSave = communities.find(c => c.id === id);
     if (!communityToSave) return;
-
-    setIsLoading(true);
+    
+    setIsLoading(true); // Indicate loading for the save/refresh operation
     try {
       const result = await adminUpdateCommunityStats(
         id,
@@ -118,37 +142,41 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
 
       if (result.success) {
         toast({ title: "Uspjeh", description: `Statistika za ${communityToSave.name} je ažurirana.` });
-        setCommunities(prev => prev.map(c => (c.id === id ? { ...c, isEditing: false } : c)));
-        router.refresh(); // Re-fetch server data to ensure consistency
+        await fetchAndSetCommunities(); // Re-fetch to confirm and get latest state
+        router.refresh(); // Refresh server components on the page if any
       } else {
         toast({ variant: "destructive", title: "Greška", description: result.message || "Nije uspjelo ažuriranje." });
+        // Optionally, revert local changes or re-fetch to be safe if save fails
+        await fetchAndSetCommunities(); // Re-fetch to show actual server state if save failed
       }
     } catch (error) {
       console.error("Save error:", error);
       toast({ variant: "destructive", title: "Greška", description: "Došlo je do neočekivane greške." });
+      await fetchAndSetCommunities(); // Re-fetch on unexpected error
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false); // fetchAndSetCommunities will handle its own isLoading
     }
   };
 
-  const refreshList = async () => {
-    setIsLoading(true);
-    try {
-      const updatedCommunities = await getAdminCommunities();
-      setCommunities(mapToEditable(updatedCommunities));
-      toast({ title: "Lista osvježena", description: "Podaci o zajednicama su ponovo učitani." });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Greška pri osvježavanju", description: "Nije moguće učitati podatke." });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const refreshListButtonAction = useCallback(async () => {
+    await fetchAndSetCommunities();
+    toast({ title: "Lista osvježena", description: "Podaci o zajednicama su ponovo učitani." });
+  }, [fetchAndSetCommunities, toast]);
   
-  if (initialCommunities.length === 0 && !isLoading) {
+  if (isLoading && communities.length === 0 && !communities.some(c => c.isEditing)) {
+    return (
+        <div className="flex flex-col items-center justify-center py-10">
+            <LoadingSpinner size={48} />
+            <p className="mt-4 text-lg text-muted-foreground">Učitavanje administrativnog panela...</p>
+        </div>
+    );
+  }
+
+  if (communities.length === 0 && !isLoading) {
     return (
         <div className="text-center py-10">
             <p className="text-muted-foreground mb-4">Nema zajednica za prikaz.</p>
-            <Button onClick={refreshList} variant="outline" disabled={isLoading}>
+            <Button onClick={refreshListButtonAction} variant="outline" disabled={isLoading}>
                 <RefreshCw className="mr-2 h-4 w-4" /> Osvježi Listu
                 {isLoading && <LoadingSpinner size={16} className="ml-2" />}
             </Button>
@@ -156,16 +184,15 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
     );
   }
 
-
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Button onClick={refreshList} variant="outline" disabled={isLoading}>
+        <Button onClick={refreshListButtonAction} variant="outline" disabled={isLoading}>
           <RefreshCw className="mr-2 h-4 w-4" /> Osvježi Listu
           {isLoading && <LoadingSpinner size={16} className="ml-2" />}
         </Button>
       </div>
-      <Card>
+      <UICard>
         <CardHeader>
           <CardTitle>Uredi Statistiku Zajednica</CardTitle>
         </CardHeader>
@@ -193,7 +220,7 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
                           value={community.elo}
                           onChange={e => handleInputChange(community.id, 'elo', e.target.value)}
                           className="max-w-20 text-right mx-auto sm:mx-0 ml-auto"
-                          disabled={isLoading}
+                          disabled={isLoading && community.isEditing}
                         />
                       ) : (
                         community.elo
@@ -206,7 +233,7 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
                           value={community.wins}
                           onChange={e => handleInputChange(community.id, 'wins', e.target.value)}
                           className="max-w-20 text-right mx-auto sm:mx-0 ml-auto"
-                          disabled={isLoading}
+                          disabled={isLoading && community.isEditing}
                         />
                       ) : (
                         community.wins
@@ -219,7 +246,7 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
                           value={community.losses}
                           onChange={e => handleInputChange(community.id, 'losses', e.target.value)}
                           className="max-w-20 text-right mx-auto sm:mx-0 ml-auto"
-                          disabled={isLoading}
+                          disabled={isLoading && community.isEditing}
                         />
                       ) : (
                         community.losses
@@ -232,7 +259,7 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
                           value={community.gamesPlayed}
                           onChange={e => handleInputChange(community.id, 'gamesPlayed', e.target.value)}
                           className="max-w-20 text-right mx-auto sm:mx-0 ml-auto"
-                          disabled={isLoading}
+                          disabled={isLoading && community.isEditing}
                         />
                       ) : (
                         community.gamesPlayed
@@ -241,10 +268,10 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
                     <TableCell className="text-center">
                       {community.isEditing ? (
                         <div className="flex gap-2 justify-center">
-                          <Button onClick={() => handleSave(community.id)} size="sm" disabled={isLoading}>
+                          <Button onClick={() => handleSave(community.id)} size="sm" disabled={isLoading && community.isEditing}>
                             <Save className="h-4 w-4" />
                           </Button>
-                          <Button onClick={() => handleCancelEdit(community.id)} variant="outline" size="sm" disabled={isLoading}>
+                          <Button onClick={() => handleCancelEdit(community.id)} variant="outline" size="sm" disabled={isLoading && community.isEditing}>
                             <Ban className="h-4 w-4" />
                           </Button>
                         </div>
@@ -260,30 +287,7 @@ export default function AdminDashboardPage({ initialCommunities }: AdminDashboar
             </Table>
           </div>
         </CardContent>
-      </Card>
+      </UICard>
     </div>
   );
 }
-
-// Dummy Card components if not globally available or to avoid circular dependency if needed
-// In a real ShadCN setup, these would come from @/components/ui/card
-const Card = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <div className={`border rounded-lg shadow-sm bg-card text-card-foreground ${className}`}>
-    {children}
-  </div>
-);
-const CardHeader = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <div className={`p-6 flex flex-col space-y-1.5 ${className}`}>
-    {children}
-  </div>
-);
-const CardTitle = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <h3 className={`text-2xl font-semibold leading-none tracking-tight ${className}`}>
-    {children}
-  </h3>
-);
-const CardContent = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <div className={`p-6 pt-0 ${className}`}>
-    {children}
-  </div>
-);
