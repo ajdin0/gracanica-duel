@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: 'Gračanica Duel - Glasanje za Zajednice',
   description: 'Glasajte za svoju omiljenu zajednicu u Gračanici! Pratite rang listu i pomozite svojoj zajednici da pobijedi u Gračanica Duelu.',
-  keywords: ['Gračanica', 'duel', 'glasanje', 'zajednice', 'rang lista', 'Bosna i Hercegovina', 'lokalne zajednice', 'takmičenje', 'community ranking', 'voting app'],
+  keywords: ['Gračanica', 'duel', 'glasanje', 'zajednice', 'rang lista', 'Bosna i Hercegovina', 'lokalne zajednice', 'takmičenje', 'community ranking', 'voting app', 'glasaj Gračanica', 'najbolja zajednica Gračanica'],
   robots: {
     index: true,
     follow: true,
@@ -55,6 +55,10 @@ export const metadata: Metadata = {
     description: 'Glasajte za svoju omiljenu zajednicu u Gračanici i pratite rang listu!',
     images: [`${APP_URL}/og-image.png`], // Needs to be an absolute URL for Twitter
     // creator: '@yourTwitterHandle', // Optional: Add your Twitter handle
+  },
+  // Verification for Google Search Console - REPLACE CONTENT WITH YOURS
+  verification: {
+    google: "YOUR_GOOGLE_VERIFICATION_CONTENT_STRING_HERE",
   },
   // Optional: Add icons for favicons, etc.
   // icons: {
