@@ -1,30 +1,27 @@
 
+"use client";
 import React from 'react';
-import { Facebook, Twitter, MessageSquare, Share2 } from 'lucide-react'; // Added Share2 for Viber
+import { Facebook, Twitter, MessageSquare, Share2, Shield } from 'lucide-react'; // Added Shield
+import AdminLoginButton from './AdminLoginButton'; // Assuming this is the button for admin login
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
-  const [shareUrl, setShareUrl] = React.useState('https://gracanica-duel.vercel.app');
+  // Use the canonical production URL for sharing. 
+  // Ensure NEXT_PUBLIC_APP_URL is set in your Vercel environment variables for production.
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://gracanica-duel.vercel.app';
   const shareTitle = "Gračanica Duel - Glasajte za omiljenu zajednicu!";
 
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setShareUrl(window.location.href);
-    }
-  }, []);
-
-  const viberShareText = encodeURIComponent(`${shareTitle} ${shareUrl}`);
+  const viberShareText = encodeURIComponent(`${shareTitle} ${APP_URL}`);
 
   return (
     <footer className="bg-secondary text-secondary-foreground py-6 mt-auto">
       <div className="container mx-auto px-4 text-center">
-        {/* AdminLoginButton can be added here if needed later */}
-        {/* <div className="mb-4"> */}
-        {/*   <AdminLoginButton /> */}
-        {/* </div> */}
+        <div className="mb-4">
+          <AdminLoginButton />
+        </div>
         <div className="flex justify-center space-x-4 mb-4">
           <a
-            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(APP_URL)}`}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Podijeli na Facebooku"
@@ -33,7 +30,7 @@ const Footer: React.FC = () => {
             <Facebook size={24} />
           </a>
           <a
-            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`}
+            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(APP_URL)}&text=${encodeURIComponent(shareTitle)}`}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Podijeli na Twitteru"
@@ -42,7 +39,7 @@ const Footer: React.FC = () => {
             <Twitter size={24} />
           </a>
           <a
-            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + " " + shareUrl)}`}
+            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + " " + APP_URL)}`}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Podijeli na WhatsAppu"
@@ -61,13 +58,6 @@ const Footer: React.FC = () => {
         <p className="text-sm">
           &copy; {currentYear} Gračanica Duel. Sva prava zadržana.
         </p>
-        {/* 
-          If admin panel is not active, you might want to remove this link or comment it out.
-          The AdminLoginButton is a more interactive way if admin features are re-enabled.
-        */}
-        {/* <p className="text-xs mt-2">
-          <a href="/admin" className="hover:underline">Admin Panel</a>
-        </p> */}
       </div>
     </footer>
   );
