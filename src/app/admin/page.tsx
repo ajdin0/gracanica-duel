@@ -19,6 +19,7 @@ export default async function AdminPage() {
   } catch (error) {
     console.error("Failed to fetch communities for admin dashboard:", error);
     // Optionally, you could pass an error message to the client component
+    // or render an error state here.
   }
   
 
