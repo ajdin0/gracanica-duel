@@ -58,3 +58,4 @@ export async function adminUpdateCommunityStats(
   }
   return await updateCommunityStatsDb(communityId, elo, wins, losses, gamesPlayed);
 }
+
