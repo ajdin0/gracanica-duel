@@ -19,9 +19,9 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://gracanica-duel.verce
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
-  title: 'Gračanica Duel - Glasanje za Zajednice',
-  description: 'Glasajte za svoju omiljenu zajednicu u Gračanici! Pratite rang listu i pomozite svojoj zajednici da pobijedi u Gračanica Duelu.',
-  keywords: ['Gračanica', 'duel', 'glasanje', 'zajednice', 'rang lista', 'Bosna i Hercegovina', 'lokalne zajednice', 'takmičenje', 'community ranking', 'voting app', 'glasaj Gračanica', 'najbolja zajednica Gračanica'],
+  title: 'Gračanica Duel - Glasajte za omiljenu zajednicu',
+  description: 'Pridružite se Gračanica Duelu! Glasajte za svoju omiljenu lokalnu zajednicu u Gračanici, pratite rang listu uživo i pomozite svojoj zajednici da postane šampion.',
+  keywords: ['Gračanica Duel', 'glasanje Gračanica', 'lokalne zajednice Gračanica', 'rang lista zajednica', 'najbolja zajednica Gračanica', 'Bosna i Hercegovina', 'takmičenje zajednica', 'community ranking Bosnia', 'vote Gračanica'],
   robots: {
     index: true,
     follow: true,
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
   },
   // manifest: '/manifest.json', // You can add a manifest.json later for PWA capabilities
   openGraph: {
-    title: 'Gračanica Duel - Glasanje za Zajednice',
-    description: 'Glasajte za svoju omiljenu zajednicu u Gračanici i pratite rang listu!',
+    title: 'Gračanica Duel - Glasajte za omiljenu zajednicu!',
+    description: 'Koja je najbolja zajednica u Gračanici? Dajte svoj glas u Gračanica Duelu i pratite uzbudljivu rang listu!',
     url: APP_URL,
     siteName: 'Gračanica Duel',
     images: [
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
         url: '/og-image.png', // Relative to public folder or use absolute URL if hosted elsewhere
         width: 1200,
         height: 630,
-        alt: 'Gračanica Duel - Rang Lista Zajednica',
+        alt: 'Gračanica Duel - Rang Lista Zajednica Gračanice',
       },
     ],
     locale: 'bs_BA',
@@ -52,19 +52,18 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Gračanica Duel - Glasanje za Zajednice',
-    description: 'Glasajte za svoju omiljenu zajednicu u Gračanici i pratite rang listu!',
+    title: 'Gračanica Duel - Glasajte za svoju omiljenu zajednicu!',
+    description: 'Učestvujte u Gračanica Duelu – glasajte za najbolje zajednice i pratite ko vodi!',
     images: [`${APP_URL}/og-image.png`], // Needs to be an absolute URL for Twitter
     // creator: '@yourTwitterHandle', // Optional: Add your Twitter handle
   },
   verification: {
     google: "oYm_lpy9905ct0I9aNgMo3MMMMnj34Vxtvvsyef-gtg",
   },
-  // Optional: Add icons for favicons, etc.
-  // icons: {
-  //   icon: '/favicon.ico',
-  //   apple: '/apple-touch-icon.png',
-  // },
+  icons: {
+    icon: '/favicon.ico', // Ensure you have a favicon.ico in your public folder
+    apple: '/apple-touch-icon.png', // For Apple devices (e.g., 180x180px in public folder)
+  },
 };
 
 export default function RootLayout({
