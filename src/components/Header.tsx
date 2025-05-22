@@ -1,9 +1,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Swords, MapPinned, Users } from 'lucide-react';
+import { Swords } from 'lucide-react'; // Removed MapPinned, Users
 import { ThemeToggleButton } from './ThemeToggleButton';
-import { Button } from './ui/button';
+// Removed Button import as it might not be needed if other buttons are gone
 
 const Header: React.FC = () => {
   return (
@@ -16,18 +16,7 @@ const Header: React.FC = () => {
           </h1>
         </Link>
         <nav className="flex items-center space-x-1 sm:space-x-2">
-          <Link href="/zajednice" passHref>
-            <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 px-2 sm:px-3">
-              <Users className="mr-0 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="hidden sm:inline">Zajednice</span>
-            </Button>
-          </Link>
-          <Link href="/karta" passHref>
-            <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 px-2 sm:px-3">
-              <MapPinned className="mr-0 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="hidden sm:inline">Karta</span>
-            </Button>
-          </Link>
+          {/* Links to Zajednice and Karta removed */}
           <ThemeToggleButton />
         </nav>
       </div>

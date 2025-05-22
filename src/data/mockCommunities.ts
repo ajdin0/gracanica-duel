@@ -10,8 +10,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Lendići. Ovdje možete pročitati više o historiji, aktivnostima i značajnim mjestima u Lendićima.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Lendići+Detalji',
   },
   {
     id: '2',
@@ -21,8 +19,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Gornja Lohinja. Saznajte više o ovoj zajednici, njenim projektima i stanovnicima.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Gornja+Lohinja+Detalji',
   },
   {
     id: '3',
@@ -32,8 +28,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o gradu Gračanica. Otkrijte bogatu historiju, kulturne znamenitosti i moderne aspekte života u Gračanici.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Gračanica+Detalji',
   },
   {
     id: '4',
@@ -43,8 +37,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Soko. Poznata po svojoj tvrđavi i prirodnim ljepotama, saznajte više o Soku.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Soko+Detalji',
   },
   {
     id: '5',
@@ -54,8 +46,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Donja Lohinja. Istražite lokalne priče, događaje i inicijative ove zajednice.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Donja+Lohinja+Detalji',
   },
   {
     id: '6',
@@ -65,8 +55,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Prijeko Brdo. Upoznajte se s karakteristikama i životom u Prijekom Brdu.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Prijeko+Brdo+Detalji',
   },
   {
     id: '7',
@@ -76,8 +64,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Trnovci. Saznajte više o lokalnim znamenitostima i aktivnostima.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Trnovci+Detalji',
   },
   {
     id: '8',
@@ -87,8 +73,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Malešići. Otkrijte specifičnosti i zanimljivosti Malešića.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Malešići+Detalji',
   },
   {
     id: '9',
@@ -98,8 +82,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Buk. Saznajte više o ovoj pitoresknoj zajednici.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Buk+Detalji',
   },
   {
     id: '10',
@@ -109,8 +91,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Vranovići. Upoznajte se s lokalnom tradicijom i životom.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Vranovići+Detalji',
   },
   {
     id: '11',
@@ -120,8 +100,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Škahovica. Otkrijte čari i osobenosti ove zajednice.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Škahovica+Detalji',
   },
   {
     id: '12',
@@ -131,8 +109,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Lukavica. Saznajte više o povijesti i razvoju Lukavice.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Lukavica+Detalji',
   },
   {
     id: '13',
@@ -142,8 +118,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Stjepan Polje. Veliko i aktivno naselje s bogatom tradicijom.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Stjepan+Polje+Detalji',
   },
   {
     id: '14',
@@ -153,8 +127,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Rašljeva. Upoznajte ljepote i specifičnosti Rašljeve.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Rašljeva+Detalji',
   },
   {
     id: '15',
@@ -164,8 +136,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Pribava. Saznajte više o lokalnim događajima i inicijativama.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Pribava+Detalji',
   },
   {
     id: '16',
@@ -175,8 +145,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Piskavica. Otkrijte čari i mir Piskavice.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Piskavica+Detalji',
   },
   {
     id: '17',
@@ -186,8 +154,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Miričina. Veliko naselje s mnogo sadržaja i aktivnosti.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Miričina+Detalji',
   },
   {
     id: '18',
@@ -197,8 +163,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Gornja Orahovica. Saznajte više o ovom historijski značajnom mjestu.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Gornja+Orahovica+Detalji',
   },
   {
     id: '19',
@@ -208,8 +172,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Džakule. Upoznajte se s lokalnim stanovništvom i njihovim aktivnostima.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Džakule+Detalji',
   },
   {
     id: '20',
@@ -219,8 +181,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Donja Orahovica. Istražite prirodne ljepote i kulturno naslijeđe.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Donja+Orahovica+Detalji',
   },
   {
     id: '21',
@@ -230,8 +190,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Gornji Doborovci. Saznajte više o životu u ovom naselju.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Gornji+Doborovci+Detalji',
   },
   {
     id: '22',
@@ -241,8 +199,6 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Doborovci. Otkrijte historiju i zanimljivosti ovog kraja.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Doborovci+Detalji',
   },
   {
     id: '23',
@@ -252,7 +208,5 @@ export const mockCommunities: Community[] = [
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    description: 'Detaljne informacije o mjesnoj zajednici Babići. Upoznajte se s ovim naseljem i njegovim stanovnicima.',
-    detailsImageUrl: 'https://placehold.co/800x400.png?text=Babići+Detalji',
   },
 ];

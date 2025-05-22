@@ -6,7 +6,7 @@ import {
   getRandomPairForVoting as getRandomPairDb, 
   recordVoteAndUpdateElo as recordVoteDb,
   getAllCommunities as getAllCommunitiesDb,
-  getCommunityById as getCommunityByIdDb
+  // getCommunityById as getCommunityByIdDb // Removed
 } from '@/lib/communityStore';
 
 export async function getCommunitiesForVoting(): Promise<[Community, Community] | []> {
@@ -23,11 +23,5 @@ export async function getLeaderboard(): Promise<Community[]> {
   return communities.sort((a, b) => b.elo - a.elo);
 }
 
-export async function getCommunityById(id: string): Promise<Community | undefined> {
-  return await getCommunityByIdDb(id);
-}
-
-// Add this new function
-export async function getAllCommunities(): Promise<Community[]> {
-  return await getAllCommunitiesDb();
-}
+// Removed getCommunityById
+// Removed getAllCommunities (as it was a simple pass-through to the Db one)
