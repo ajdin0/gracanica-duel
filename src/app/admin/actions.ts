@@ -4,9 +4,12 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { Community } from '@/types';
-import { getAllCommunities as getAllCommunitiesDb, updateCommunityStats as updateCommunityStatsDb } from '@/lib/communityStore';
+import { 
+  getAllCommunities as getAllCommunitiesDb, 
+  updateCommunityStats as updateCommunityStatsDb 
+} from '@/lib/communityStore';
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "TringAjdin24!"; // Ensure you set ADMIN_PASSWORD in .env.local or Vercel env vars
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "TringAjdin24!";
 const ADMIN_COOKIE_NAME = 'admin_authenticated';
 
 export async function login(password: string): Promise<{ success: boolean; message?: string }> {
@@ -26,7 +29,7 @@ export async function login(password: string): Promise<{ success: boolean; messa
 
 export async function logout() {
   cookies().delete(ADMIN_COOKIE_NAME);
-  redirect('/');
+  redirect('/'); // Redirect to main page after logout
 }
 
 export async function checkAdminAuth(): Promise<boolean> {
@@ -37,8 +40,6 @@ export async function checkAdminAuth(): Promise<boolean> {
 export async function getAdminCommunities(): Promise<Community[]> {
   const isAdmin = await checkAdminAuth();
   if (!isAdmin) {
-    // This should ideally not be reached if middleware is effective,
-    // but serves as an additional check.
     return []; 
   }
   return await getAllCommunitiesDb();
