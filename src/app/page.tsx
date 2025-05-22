@@ -18,7 +18,7 @@ export default function HomePage() {
   const [previousEloForLeaderboard, setPreviousEloForLeaderboard] = useState<Record<string, number>>({});
   
   const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
-  const [isLoadingVotingPair, setIsLoadingVotingPair] = useState(false); // Specifically for fetching new pairs after a vote
+  const [isLoadingVotingPair, setIsLoadingVotingPair] = useState(false); // Specifically for fetching new pairs
   const [isSubmittingVote, setIsSubmittingVote] = useState(false);
 
   const router = useRouter();
@@ -28,21 +28,18 @@ export default function HomePage() {
     const communitiesFromServer = await getLeaderboard();
     setLeaderboardData(currentDataInState => {
       const newPrevEloSnapshot: Record<string, number> = {};
-      // If initial load, previousElo is same as current ELO (no change)
-      // Otherwise, previousElo is based on the state *before* this server update.
       const sourceForPreviousElo = isInitialLoad ? communitiesFromServer : currentDataInState;
       
       sourceForPreviousElo.forEach(c => {
         newPrevEloSnapshot[c.id] = c.elo;
       });
-      // Preserve existing previousElo entries not in current snapshot, merge new ones
       setPreviousEloForLeaderboard(prevElo => ({ ...prevElo, ...newPrevEloSnapshot }));
       return communitiesFromServer;
     });
   }, []);
 
   const fetchVotingPairInternal = useCallback(async () => {
-    setIsLoadingVotingPair(true); // Used for subsequent fetches
+    setIsLoadingVotingPair(true);
     const pair = await getCommunitiesForVoting();
     if (pair.length === 2) {
       setVotingPair(pair as [Community, Community]);
@@ -72,7 +69,6 @@ export default function HomePage() {
 
     const { newWinnerElo, newLoserElo } = calculateElo(winnerCommunity.elo, loserCommunity.elo);
 
-    // Optimistic update for Leaderboard data
     setLeaderboardData(currentLeaderboard => {
       const snapshotOfOldElos: Record<string, number> = {};
       currentLeaderboard.forEach(c => {
@@ -87,7 +83,6 @@ export default function HomePage() {
       }).sort((a, b) => b.elo - a.elo);
     });
 
-    // Optimistic update for the voting pair itself (for card display)
     setVotingPair(prevPair => 
       prevPair.map(c => {
         if (c.id === winnerCommunity.id) return { ...c, elo: newWinnerElo };
@@ -105,9 +100,9 @@ export default function HomePage() {
         });
         
         setTimeout(async () => {
-          router.refresh(); // Request re-fetch of server components data
-          await fetchLeaderboardAndInitPreviousElo(); // Re-fetch and update Leaderboard data from server
-          await fetchVotingPairInternal();     // Fetch new voting pair
+          router.refresh(); 
+          await fetchLeaderboardAndInitPreviousElo(); 
+          await fetchVotingPairInternal();     
           setIsSubmittingVote(false);
         }, 1500);
 
@@ -120,11 +115,19 @@ export default function HomePage() {
         title: "Greška pri glasanju",
         description: err instanceof Error ? err.message : 'Nepoznata greška',
       });
-      // Rollback optimistic updates by re-fetching from server
-      await fetchLeaderboardAndInitPreviousElo(true); // Pass true to reset previousElo based on server
+      await fetchLeaderboardAndInitPreviousElo(true);
       await fetchVotingPairInternal();
       setIsSubmittingVote(false);
     }
+  };
+
+  const handleSkipVote = async () => {
+    if (isSubmittingVote || isLoadingVotingPair) return;
+    toast({
+      title: "Preskačem...",
+      description: "Učitavam novi par zajednica.",
+    });
+    await fetchVotingPairInternal();
   };
 
   return (
@@ -134,13 +137,14 @@ export default function HomePage() {
         <VotingArea
           communities={votingPair}
           onVote={handleVote}
-          isLoading={isLoadingInitialData || isLoadingVotingPair} // Combined loading state for VotingArea
+          onSkip={handleSkipVote}
+          isLoading={isLoadingInitialData || isLoadingVotingPair}
           isVotingProcessing={isSubmittingVote}
-          key={votingPair.map(c => c.id).join('-')} // Force re-render of VotingArea with new pair
+          key={votingPair.map(c => c.id).join('-')}
         />
         <Leaderboard
           communities={leaderboardData}
-          isLoading={isLoadingInitialData} // Leaderboard loading state
+          isLoading={isLoadingInitialData}
           previousElo={previousEloForLeaderboard}
         />
       </main>

@@ -2,42 +2,39 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-// Removed useRouter as page refresh is handled by HomePage
 import type { Community } from '@/types';
-// Removed getCommunitiesForVoting, submitVote as they are handled by HomePage
 import CommunityCard from './CommunityCard';
 import LoadingSpinner from './LoadingSpinner';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, AlertTriangle } from 'lucide-react';
-// Removed useToast, calculateElo as they are handled/available in HomePage
+import { RefreshCw, AlertTriangle, SkipForward } from 'lucide-react';
 
 interface VotingAreaProps {
   communities: [Community, Community] | [];
   onVote: (winnerId: string) => void;
-  isLoading: boolean; // True if initial data or new pair is loading
-  isVotingProcessing: boolean; // True during the vote submission and optimistic update phase
+  onSkip: () => void; // New prop for skipping
+  isLoading: boolean; 
+  isVotingProcessing: boolean; 
 }
 
 const VotingArea: React.FC<VotingAreaProps> = ({
   communities,
   onVote,
+  onSkip, // New prop
   isLoading,
   isVotingProcessing,
 }) => {
   const [voteHighlight, setVoteHighlight] = useState<{ winnerId: string | null; loserId: string | null }>({ winnerId: null, loserId: null });
-  const [error, setError] = useState<string | null>(null); // Local error for "not enough communities" if needed
+  const [error, setError] = useState<string | null>(null);
 
-  // Effect to clear highlights when a new pair is loaded (or processing ends)
   useEffect(() => {
     if (!isVotingProcessing) {
       setVoteHighlight({ winnerId: null, loserId: null });
     }
   }, [communities, isVotingProcessing]);
   
-  // Effect to handle prop changes for communities and clear errors
   useEffect(() => {
     if (communities.length < 2 && !isLoading) {
-       // setError('Nije dostupno dovoljno zajednica za glasanje.'); // Can be set by HomePage too
+       // setError('Nije dostupno dovoljno zajednica za glasanje.');
     } else {
       setError(null);
     }
@@ -50,18 +47,14 @@ const VotingArea: React.FC<VotingAreaProps> = ({
     const loserCommunity = communities.find(c => c.id !== winnerId);
     if (winnerCommunity && loserCommunity) {
       setVoteHighlight({ winnerId: winnerCommunity.id, loserId: loserCommunity.id });
-      onVote(winnerId); // Call the onVote prop passed from HomePage
+      onVote(winnerId);
     }
   };
   
-  // This function is for a manual refresh button if VotingArea needs to trigger it.
-  // Currently, HomePage handles fetching, so this might not be directly used.
   const triggerManualRefresh = () => {
-    // Potentially, HomePage could pass down a refresh function if needed here.
-    // For now, this is a placeholder if we want a local "Try Again" for this component.
-    // window.location.reload(); // Simplest, but full page reload. Not ideal.
-    // Or, HomePage would need to expose a refresh function.
-    console.log("Manual refresh triggered in VotingArea - needs HomePage coordination");
+    // This might be better handled by onSkip if the error state is due to no pairs
+    onSkip(); 
+    console.log("Manual refresh triggered in VotingArea");
   };
 
 
@@ -138,6 +131,19 @@ const VotingArea: React.FC<VotingAreaProps> = ({
           />
         </div>
       )}
+      {communities.length === 2 && (
+         <div className="mt-6 text-center">
+            <Button
+                onClick={onSkip}
+                variant="outline"
+                disabled={isLoading || isVotingProcessing}
+                className="bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-transform transform hover:scale-105"
+            >
+                <SkipForward className="mr-2 h-4 w-4" /> Preskoči
+            </Button>
+         </div>
+      )}
+
       {showProcessingOrLoadingOverlay && (
         <div className="absolute inset-0 bg-background/70 flex flex-col items-center justify-center z-10 rounded-lg">
           <LoadingSpinner size={64} />
