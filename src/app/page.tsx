@@ -29,8 +29,6 @@ export default function HomePage() {
     const communitiesFromServer = await getLeaderboard();
     setLeaderboardData(currentDataInState => {
       const newPrevEloSnapshot: Record<string, number> = {};
-      // Use communitiesFromServer for snapshot if it's the very first load, 
-      // otherwise use the current state before updating for subsequent refreshes.
       const sourceForPreviousElo = isInitialLoad ? communitiesFromServer : currentDataInState.length > 0 ? currentDataInState : communitiesFromServer;
       
       sourceForPreviousElo.forEach(c => {
@@ -66,7 +64,6 @@ export default function HomePage() {
           title: "Greška",
           description: "Nije moguće učitati podatke. Molimo pokušajte ponovo kasnije."
         });
-        // Optionally set an error state here to display a message on the page
       } finally {
         setIsLoadingInitialData(false);
       }
@@ -83,7 +80,6 @@ export default function HomePage() {
 
     const { newWinnerElo, newLoserElo } = calculateElo(winnerCommunity.elo, loserCommunity.elo);
 
-    // Optimistic update for Leaderboard
     setLeaderboardData(currentLeaderboard => {
       const snapshotOfOldElos: Record<string, number> = {};
       currentLeaderboard.forEach(c => {
@@ -98,7 +94,6 @@ export default function HomePage() {
       }).sort((a, b) => b.elo - a.elo);
     });
 
-    // Optimistic update for Voting Pair cards
     setVotingPair(prevPair => 
       prevPair.map(c => {
         if (c.id === winnerCommunity.id) return { ...c, elo: newWinnerElo };
@@ -115,11 +110,10 @@ export default function HomePage() {
           description: `${winnerCommunity.name} je pobijedio/la ${loserCommunity.name}.`,
         });
         
-        // Delay before fetching new data to allow user to see optimistic updates
         setTimeout(async () => {
-          router.refresh(); // Ensures server components relying on this data also update
-          await fetchLeaderboardAndInitPreviousElo(); // Fetch latest leaderboard from server
-          await fetchVotingPairInternal(); // Fetch new pair from server     
+          router.refresh(); 
+          await fetchLeaderboardAndInitPreviousElo(); 
+          await fetchVotingPairInternal();     
           setIsSubmittingVote(false);
         }, 1500);
 
@@ -132,7 +126,6 @@ export default function HomePage() {
         title: "Greška pri glasanju",
         description: err instanceof Error ? err.message : 'Nepoznata greška',
       });
-      // Revert optimistic updates by fetching fresh data
       await fetchLeaderboardAndInitPreviousElo(true);
       await fetchVotingPairInternal();
       setIsSubmittingVote(false);
@@ -166,13 +159,13 @@ export default function HomePage() {
           communities={votingPair}
           onVote={handleVote}
           onSkip={handleSkipVote}
-          isLoading={isLoadingVotingPair} // VotingArea's loading is now for new pairs, not initial
+          isLoading={isLoadingVotingPair}
           isVotingProcessing={isSubmittingVote}
-          key={votingPair.map(c => c.id).join('-') + (isSubmittingVote ? '-processing' : '')} // Ensure re-render for highlight reset
+          key={votingPair.map(c => c.id).join('-') + (isSubmittingVote ? '-processing' : '')}
         />
         <Leaderboard
           communities={leaderboardData}
-          isLoading={false} // Leaderboard's loading is handled by HomePage initial load
+          isLoading={false} 
           previousElo={previousEloForLeaderboard}
         />
       </main>
