@@ -21,27 +21,34 @@ export async function login(password: string): Promise<{ success: boolean; messa
       path: '/',
       sameSite: 'lax',
     });
+    console.log('Admin login successful.');
     return { success: true };
   } else {
+    console.log('Admin login failed: Incorrect password.');
     return { success: false, message: 'Netačna lozinka.' };
   }
 }
 
 export async function logout() {
+  console.log('Admin logout initiated.');
   cookies().delete(ADMIN_COOKIE_NAME);
   redirect('/'); // Redirect to main page after logout
 }
 
 export async function checkAdminAuth(): Promise<boolean> {
   const cookieStore = cookies();
-  return cookieStore.has(ADMIN_COOKIE_NAME) && cookieStore.get(ADMIN_COOKIE_NAME)?.value === 'true';
+  const isAuthenticated = cookieStore.has(ADMIN_COOKIE_NAME) && cookieStore.get(ADMIN_COOKIE_NAME)?.value === 'true';
+  // console.log('Admin auth check, isAuthenticated:', isAuthenticated);
+  return isAuthenticated;
 }
 
 export async function getAdminCommunities(): Promise<Community[]> {
   const isAdmin = await checkAdminAuth();
   if (!isAdmin) {
+    console.log('getAdminCommunities: Not authorized.');
     return []; 
   }
+  // console.log('getAdminCommunities: Authorized, fetching communities.');
   return await getAllCommunitiesDb();
 }
 
@@ -54,8 +61,22 @@ export async function adminUpdateCommunityStats(
 ): Promise<{ success: boolean; message?: string }> {
   const isAdmin = await checkAdminAuth();
   if (!isAdmin) {
+    console.log('adminUpdateCommunityStats: Not authorized.');
     return { success: false, message: 'Niste ovlašteni za ovu akciju.' };
   }
-  return await updateCommunityStatsDb(communityId, elo, wins, losses, gamesPlayed);
+  
+  console.log(`adminUpdateCommunityStats: Authorized. Attempting to update community ${communityId} with ELO: ${elo}, Wins: ${wins}, Losses: ${losses}, Games: ${gamesPlayed}`);
+  
+  try {
+    const result = await updateCommunityStatsDb(communityId, elo, wins, losses, gamesPlayed);
+    if (result.success) {
+      console.log(`adminUpdateCommunityStats: Successfully updated community ${communityId}.`);
+    } else {
+      console.warn(`adminUpdateCommunityStats: Failed to update community ${communityId}. Message: ${result.message}`);
+    }
+    return result;
+  } catch (error) {
+    console.error(`adminUpdateCommunityStats: Error updating community ${communityId}:`, error);
+    return { success: false, message: 'Došlo je do greške na serveru prilikom ažuriranja.' };
+  }
 }
-
