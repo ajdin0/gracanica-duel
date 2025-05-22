@@ -26,3 +26,8 @@ export async function getLeaderboard(): Promise<Community[]> {
 export async function getCommunityById(id: string): Promise<Community | undefined> {
   return await getCommunityByIdDb(id);
 }
+
+// Add this new function
+export async function getAllCommunities(): Promise<Community[]> {
+  return await getAllCommunitiesDb();
+}

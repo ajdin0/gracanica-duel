@@ -22,10 +22,10 @@ const Header: React.FC = () => {
               <span className="hidden sm:inline">Zajednice</span>
             </Button>
           </Link>
-          <Link href="/mapa" passHref>
+          <Link href="/karta" passHref>
             <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 px-2 sm:px-3">
               <MapPinned className="mr-0 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="hidden sm:inline">Mapa</span>
+              <span className="hidden sm:inline">Karta</span>
             </Button>
           </Link>
           <ThemeToggleButton />
