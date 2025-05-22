@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Shield } from 'lucide-react';
 
 const REQUIRED_CLICKS = 5;
-const MAX_CLICK_INTERVAL_MS = 500; // Changed to 0.5 seconds
+const MAX_CLICK_INTERVAL_MS = 1000; // Changed back to 1 second (1000ms)
 
 const AdminLoginButton: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -32,13 +32,15 @@ const AdminLoginButton: React.FC = () => {
   const [lastClickTime, setLastClickTime] = useState(0);
 
   const handleShieldClick = () => {
-    if (isDialogOpen) return; 
+    if (isDialogOpen) return; // Don't process clicks if dialog is already open
 
     const currentTime = Date.now();
 
     if (currentTime - lastClickTime > MAX_CLICK_INTERVAL_MS) {
+      // If too much time has passed since the last click, or if it's the first click
       setClickCount(1);
     } else {
+      // Otherwise, increment the count
       setClickCount(prevCount => prevCount + 1);
     }
     setLastClickTime(currentTime);
@@ -46,12 +48,12 @@ const AdminLoginButton: React.FC = () => {
 
   useEffect(() => {
     if (clickCount === REQUIRED_CLICKS) {
-      setPasswordInput(''); 
+      setPasswordInput(''); // Clear password input before opening dialog
       setIsDialogOpen(true);
-      setClickCount(0);
-      setLastClickTime(0);
+      setClickCount(0); // Reset for next time
+      setLastClickTime(0); // Reset time
     }
-  }, [clickCount]);
+  }, [clickCount]); // Removed setIsDialogOpen as it's a setter and doesn't need to be a dependency
 
   const handleAdminLogin = useCallback(async () => {
     setIsLoading(true);
@@ -63,7 +65,7 @@ const AdminLoginButton: React.FC = () => {
           description: 'Preusmjeravanje na admin panel...',
         });
         router.push('/admin');
-        setIsDialogOpen(false);
+        setIsDialogOpen(false); // Close dialog on success
         setPasswordInput(''); 
       } else {
         toast({
@@ -71,6 +73,7 @@ const AdminLoginButton: React.FC = () => {
           title: 'Prijava neuspješna',
           description: result.message || 'Netačna lozinka ili je došlo do greške.',
         });
+        setPasswordInput(''); // Clear password input on failure to allow re-entry
       }
     } catch (error) {
       console.error('Admin login error:', error);
@@ -111,6 +114,7 @@ const AdminLoginButton: React.FC = () => {
       <Dialog open={isDialogOpen} onOpenChange={(open) => {
         setIsDialogOpen(open);
         if (!open) {
+            // If dialog is closed (e.g., by "Odustani" or 'X'), reset the click sequence
             setPasswordInput(''); 
             setClickCount(0); 
             setLastClickTime(0);
