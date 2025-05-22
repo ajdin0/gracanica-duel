@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Shield } from 'lucide-react';
 
 const REQUIRED_CLICKS = 5;
-const MAX_CLICK_INTERVAL_MS = 1000; // 1 second
+const MAX_CLICK_INTERVAL_MS = 500; // Changed to 0.5 seconds
 
 const AdminLoginButton: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -32,15 +32,13 @@ const AdminLoginButton: React.FC = () => {
   const [lastClickTime, setLastClickTime] = useState(0);
 
   const handleShieldClick = () => {
-    if (isDialogOpen) return; // Don't process clicks if dialog is already open
+    if (isDialogOpen) return; 
 
     const currentTime = Date.now();
 
     if (currentTime - lastClickTime > MAX_CLICK_INTERVAL_MS) {
-      // If too much time passed since last click, or first click in a potential sequence
       setClickCount(1);
     } else {
-      // If within time, increment
       setClickCount(prevCount => prevCount + 1);
     }
     setLastClickTime(currentTime);
@@ -48,9 +46,8 @@ const AdminLoginButton: React.FC = () => {
 
   useEffect(() => {
     if (clickCount === REQUIRED_CLICKS) {
-      setPasswordInput(''); // Clear password field when dialog is opened
+      setPasswordInput(''); 
       setIsDialogOpen(true);
-      // Reset for next attempt
       setClickCount(0);
       setLastClickTime(0);
     }
@@ -106,7 +103,7 @@ const AdminLoginButton: React.FC = () => {
         variant="ghost"
         size="icon"
         onClick={handleShieldClick}
-        className="ml-2 p-1 h-6 w-6 hover:bg-transparent" // Adjusted size and hover
+        className="ml-2 p-1 h-6 w-6 hover:bg-transparent cursor-default" // Added cursor-default and ensured hover:bg-transparent
         aria-label="Admin Panel Access"
       >
         <Shield className="h-4 w-4 text-muted-foreground hover:text-foreground" />
@@ -115,7 +112,7 @@ const AdminLoginButton: React.FC = () => {
         setIsDialogOpen(open);
         if (!open) {
             setPasswordInput(''); 
-            setClickCount(0); // Reset click count if dialog is closed
+            setClickCount(0); 
             setLastClickTime(0);
         }
       }}>
