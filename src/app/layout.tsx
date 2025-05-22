@@ -56,9 +56,8 @@ export const metadata: Metadata = {
     images: [`${APP_URL}/og-image.png`], // Needs to be an absolute URL for Twitter
     // creator: '@yourTwitterHandle', // Optional: Add your Twitter handle
   },
-  // Verification for Google Search Console - REPLACE CONTENT WITH YOURS
   verification: {
-    google: "YOUR_GOOGLE_VERIFICATION_CONTENT_STRING_HERE",
+    google: "oYm_lpy9905ct0I9aNgMo3MMMMnj34Vxtvvsyef-gtg",
   },
   // Optional: Add icons for favicons, etc.
   // icons: {
