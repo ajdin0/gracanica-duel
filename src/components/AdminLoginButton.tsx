@@ -19,7 +19,8 @@ import { Label } from '@/components/ui/label';
 import { Shield } from 'lucide-react';
 
 const REQUIRED_CLICKS = 5;
-const MAX_CLICK_INTERVAL_MS = 1000; // Changed back to 1 second (1000ms)
+const MIN_CLICK_INTERVAL_MS = 500; // 0.5 seconds
+const MAX_CLICK_INTERVAL_MS = 3000; // 3 seconds
 
 const AdminLoginButton: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -36,24 +37,35 @@ const AdminLoginButton: React.FC = () => {
 
     const currentTime = Date.now();
 
-    if (currentTime - lastClickTime > MAX_CLICK_INTERVAL_MS) {
-      // If too much time has passed since the last click, or if it's the first click
+    if (clickCount === 0 || lastClickTime === 0) {
+      // First click of a new potential sequence
       setClickCount(1);
-    } else {
-      // Otherwise, increment the count
-      setClickCount(prevCount => prevCount + 1);
+      setLastClickTime(currentTime);
+      return;
     }
-    setLastClickTime(currentTime);
+
+    const interval = currentTime - lastClickTime;
+
+    if (interval >= MIN_CLICK_INTERVAL_MS && interval <= MAX_CLICK_INTERVAL_MS) {
+      // Click is within the valid time window, continue sequence
+      setClickCount(prevCount => prevCount + 1);
+      setLastClickTime(currentTime);
+    } else {
+      // Click is too fast or too slow, reset sequence with this click as the first
+      setClickCount(1);
+      setLastClickTime(currentTime);
+    }
   };
 
   useEffect(() => {
     if (clickCount === REQUIRED_CLICKS) {
       setPasswordInput(''); // Clear password input before opening dialog
       setIsDialogOpen(true);
-      setClickCount(0); // Reset for next time
-      setLastClickTime(0); // Reset time
+      // Reset click sequence state after successfully triggering the dialog
+      setClickCount(0); 
+      setLastClickTime(0);
     }
-  }, [clickCount]); // Removed setIsDialogOpen as it's a setter and doesn't need to be a dependency
+  }, [clickCount]);
 
   const handleAdminLogin = useCallback(async () => {
     setIsLoading(true);
@@ -106,7 +118,7 @@ const AdminLoginButton: React.FC = () => {
         variant="ghost"
         size="icon"
         onClick={handleShieldClick}
-        className="ml-2 p-1 h-6 w-6 hover:bg-transparent cursor-default" // Added cursor-default and ensured hover:bg-transparent
+        className="ml-2 p-1 h-6 w-6 hover:bg-transparent cursor-default"
         aria-label="Admin Panel Access"
       >
         <Shield className="h-4 w-4 text-muted-foreground hover:text-foreground" />
